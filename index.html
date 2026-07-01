@@ -26,8 +26,8 @@
   <!-- App Stylesheet -->
   <link rel="stylesheet" href="/src/style.css">
   
-  <!-- Inline SVG Favicon (Pertamina Logo - accurate parallelograms) -->
-  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 185'%3E%3Cpolygon points='8,150 75,170 118,55 51,35' fill='%23005CA9'/%3E%3Cpolygon points='95,8 155,22 147,62 87,48' fill='%23EF3340'/%3E%3Cpolygon points='100,72 160,86 150,126 90,112' fill='%236DB33F'/%3E%3C/svg%3E">
+  <!-- Pertamina Logo PNG Favicon -->
+  <link rel="icon" type="image/png" href="/pertamina-logo.png">
 </head>
 <body>
   
@@ -38,15 +38,7 @@
     <aside class="sidebar" id="appSidebar">
       <div class="sidebar-brand">
         <div class="brand-logo" style="background: transparent; padding: 0;">
-          <!-- Pertamina Logo: 3 parallelograms (Blue large left, Red small top-right, Green lower-right) -->
-          <svg viewBox="0 0 200 185" width="42" height="39" style="display: block;">
-            <!-- Blue: large parallelogram, bottom-left -->
-            <polygon points="8,150 75,170 118,55 51,35" fill="#005CA9"/>
-            <!-- Red: small parallelogram, upper-right -->
-            <polygon points="95,8 155,22 147,62 87,48" fill="#EF3340"/>
-            <!-- Green: medium parallelogram, lower-right (below red) -->
-            <polygon points="100,72 160,86 150,126 90,112" fill="#6DB33F"/>
-          </svg>
+          <img src="/pertamina-logo.png" alt="Pertamina Logo" style="width: 44px; height: 44px; object-fit: contain; display: block;">
         </div>
         <div class="brand-text">
           <h1>Career-Sync</h1>
