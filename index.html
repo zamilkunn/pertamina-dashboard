@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pertamina Career-Sync | Internship 2026 Analytics Dashboard</title>
+  <meta name="description" content="Explore, filter, analyze, and compare PT Pertamina (Persero) 2026 Internship opportunities with live competition ratio statistics.">
+  
+  <!-- Preconnect and Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <!-- Lucide Icons (CDN) -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  
+  <!-- Chart.js (CDN) -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <!-- PDF.js (CDN) for client-side CV file extraction -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+
+  <!-- App Stylesheet -->
+  <link rel="stylesheet" href="/src/style.css">
+</head>
+<body>
+  
+  <!-- Dashboard Layout Container -->
+  <div class="app-container">
+    
+    <!-- Sidebar Navigation -->
+    <aside class="sidebar" id="appSidebar">
+      <div class="sidebar-brand">
+        <div class="brand-logo">
+          <i data-lucide="compass" class="brand-icon"></i>
+        </div>
+        <div class="brand-text">
+          <h1>Career-Sync</h1>
+          <span>PERTAMINA 2026</span>
+        </div>
+      </div>
+      
+      <nav class="sidebar-nav">
+        <button class="nav-item active" data-target="dashboard-section" id="navDashboard">
+          <i data-lucide="bar-chart-3"></i>
+          <span>Dashboard</span>
+        </button>
+        <button class="nav-item" data-target="explorer-section" id="navExplorer">
+          <i data-lucide="search-code"></i>
+          <span>Program Explorer</span>
+        </button>
+        <button class="nav-item" data-target="matcher-section" id="navMatcher">
+          <i data-lucide="sparkles"></i>
+          <span>AI CV Matcher</span>
+        </button>
+        <button class="nav-item" data-target="favorites-section" id="navFavorites">
+          <i data-lucide="bookmark-check"></i>
+          <span>My Saved List</span>
+          <span class="badge" id="bookmarkCountBadge">0</span>
+        </button>
+      </nav>
+
+      <div class="sidebar-footer">
+        <!-- Theme Toggle -->
+        <button class="theme-toggle-btn" id="themeToggleBtn" aria-label="Toggle Theme">
+          <i data-lucide="sun" class="sun-icon"></i>
+          <i data-lucide="moon" class="moon-icon"></i>
+          <span class="theme-label">Toggle Mode</span>
+        </button>
+        <div class="user-profile">
+          <img src="https://api.dicebear.com/7.x/bottts/svg?seed=pertamina&backgroundColor=0284c7" alt="User Avatar" class="avatar">
+          <div class="user-info">
+            <span class="user-name">Guest Analyst</span>
+            <span class="user-role">Candidate</span>
+          </div>
+        </div>
+        <div class="dev-copyright" style="margin-top: 16px; padding-top: 12px; border-top: 1px solid var(--border-color); display: flex; flex-direction: column; align-items: center; gap: 6px; font-size: 0.7rem; color: var(--text-secondary); font-weight: 500;">
+          <div style="display: flex; align-items: center; gap: 6px;">
+            <i data-lucide="code-2" style="width: 12px; height: 12px; color: var(--color-primary);"></i>
+            <span>Created by Muhamad Cep Zamil</span>
+          </div>
+          <a href="https://github.com/zamilkunn" target="_blank" style="display: flex; align-items: center; gap: 6px; color: var(--text-secondary); text-decoration: none; font-weight: 600; font-size: 0.75rem; transition: color var(--transition-fast); margin-top: 2px;" onmouseover="this.style.color='var(--color-primary)'" onmouseout="this.style.color='var(--text-secondary)'">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="currentColor" style="display:inline-block; vertical-align:middle; transition: transform var(--transition-fast);" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
+            <span>@zamilkunn</span>
+          </a>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="main-content">
+      
+      <!-- Top Header -->
+      <header class="top-header">
+        <div class="header-left">
+          <button class="mobile-toggle" id="mobileSidebarToggle" aria-label="Toggle Sidebar">
+            <i data-lucide="menu"></i>
+          </button>
+          <div class="welcome-msg">
+            <h2 id="pageTitleHeading">Internship Analytics</h2>
+            <p class="text-secondary" id="pageSubTitleHeading">Overview of the 2026 PT Pertamina (Persero) recruitment season.</p>
+          </div>
+        </div>
+        
+        <div class="header-right">
+          <!-- CSV Import/Reset -->
+          <div class="csv-actions">
+            <button class="btn btn-secondary btn-icon-only" id="aiSettingsBtn" title="Gemini AI Settings" style="margin-right: 8px;">
+              <i data-lucide="settings"></i>
+            </button>
+            <label for="csvFileInput" class="btn btn-secondary btn-icon-text" id="csvUploadLabel">
+              <i data-lucide="upload-cloud"></i>
+              <span>Upload CSV</span>
+            </label>
+            <input type="file" id="csvFileInput" accept=".csv" style="display: none;">
+            
+            <button class="btn btn-danger btn-icon-only" id="resetDataBtn" title="Reset to Original Pertamina Data" style="display: none;">
+              <i data-lucide="rotate-ccw"></i>
+            </button>
+          </div>
+        </div>
+      </header>
+
+      <!-- Content Views wrapper -->
+      <div class="content-body">
+        
+        <!-- SECTION 1: ANALYTICS DASHBOARD -->
+        <section id="dashboard-section" class="content-section active">
+          
+          <!-- KPI Summary Cards -->
+          <div class="kpi-grid">
+            
+            <div class="kpi-card" id="kpiPrograms">
+              <div class="kpi-icon-wrapper color-primary">
+                <i data-lucide="briefcase"></i>
+              </div>
+              <div class="kpi-data">
+                <span class="kpi-title">Active Programs</span>
+                <h3 class="kpi-value" id="statPrograms">-</h3>
+                <span class="kpi-desc">Total internship roles opened</span>
+              </div>
+            </div>
+
+            <div class="kpi-card" id="kpiPositions">
+              <div class="kpi-icon-wrapper color-success">
+                <i data-lucide="target"></i>
+              </div>
+              <div class="kpi-data">
+                <span class="kpi-title">Total Positions</span>
+                <h3 class="kpi-value" id="statPositions">-</h3>
+                <span class="kpi-desc">Quotas/slots available</span>
+              </div>
+            </div>
+
+            <div class="kpi-card" id="kpiApplicants">
+              <div class="kpi-icon-wrapper color-info">
+                <i data-lucide="users"></i>
+              </div>
+              <div class="kpi-data">
+                <span class="kpi-title">Total Applicants</span>
+                <h3 class="kpi-value" id="statApplicants">-</h3>
+                <span class="kpi-desc" id="statAvgApplicantsPerRole">Avg. - per role</span>
+              </div>
+            </div>
+
+            <div class="kpi-card" id="kpiAvgRatio">
+              <div class="kpi-icon-wrapper color-warning">
+                <i data-lucide="flame"></i>
+              </div>
+              <div class="kpi-data">
+                <span class="kpi-title">Average Competition Ratio</span>
+                <h3 class="kpi-value" id="statAvgRatio">-</h3>
+                <span class="kpi-desc">Applicants per 1 position slot</span>
+              </div>
+            </div>
+
+            <div class="kpi-card span-two" id="kpiMostCompetitive">
+              <div class="kpi-icon-wrapper color-danger">
+                <i data-lucide="trending-up"></i>
+              </div>
+              <div class="kpi-data">
+                <span class="kpi-title">Most Competitive Role</span>
+                <h4 class="kpi-subvalue" id="statMostCompetitiveTitle">-</h4>
+                <div class="kpi-sub-stats">
+                  <span id="statMostCompetitiveDetail">-</span>
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- Charts Layout Grid -->
+          <div class="charts-grid">
+            
+            <div class="chart-card large">
+              <div class="chart-header">
+                <h4>Applicants & Positions by Subsidiary Company</h4>
+                <p class="text-secondary">Shows workload and demand balance per corporate unit.</p>
+              </div>
+              <div class="chart-wrapper">
+                <canvas id="companyDistributionChart"></canvas>
+              </div>
+            </div>
+
+            <div class="chart-card">
+              <div class="chart-header">
+                <h4>Top 10 Most Competitive Functions</h4>
+                <p class="text-secondary">Highest average applicant-to-position ratio.</p>
+              </div>
+              <div class="chart-wrapper">
+                <canvas id="functionRatioChart"></canvas>
+              </div>
+            </div>
+
+            <div class="chart-card">
+              <div class="chart-header">
+                <h4>Location Distribution</h4>
+                <p class="text-secondary">Distribution of openings across regions.</p>
+              </div>
+              <div class="chart-wrapper">
+                <canvas id="locationDistributionChart"></canvas>
+              </div>
+            </div>
+
+            <div class="chart-card">
+              <div class="chart-header">
+                <h4>Selectivity Zones</h4>
+                <p class="text-secondary">Breakdown of roles grouped by competition intensity.</p>
+              </div>
+              <div class="chart-wrapper">
+                <canvas id="competitionZonesChart"></canvas>
+              </div>
+            </div>
+
+          </div>
+          
+        </section>
+
+        <!-- SECTION 2: PROGRAM EXPLORER -->
+        <section id="explorer-section" class="content-section">
+          
+          <!-- Filters & Controls panel -->
+          <div class="filter-panel glassmorphic">
+            <div class="filter-row main-filters">
+              <div class="form-group search-group">
+                <i data-lucide="search" class="search-icon"></i>
+                <input type="text" id="explorerSearchInput" placeholder="Search by position title, function, department or details...">
+              </div>
+              
+              <div class="form-group">
+                <select id="filterCompanySelect">
+                  <option value="">All Companies / Subsidiaries</option>
+                  <!-- Populate dynamically -->
+                </select>
+              </div>
+
+              <div class="form-group">
+                <select id="filterLocationSelect">
+                  <option value="">All Locations</option>
+                  <!-- Populate dynamically -->
+                </select>
+              </div>
+            </div>
+
+            <div class="filter-row advanced-filters">
+              
+              <div class="form-group slider-group">
+                <div class="slider-labels">
+                  <span>Competition Ratio: <strong id="ratioValueLabel">Any</strong></span>
+                </div>
+                <div class="range-container">
+                  <input type="range" id="filterRatioRange" min="1" max="500" value="500" class="custom-slider">
+                  <div class="slider-ticks">
+                    <span>1x</span>
+                    <span>100x</span>
+                    <span>200x</span>
+                    <span>300x</span>
+                    <span>400x</span>
+                    <span>500x+</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <select id="sortFieldSelect">
+                  <option value="rasio-desc">Sort by: Competition Ratio (Highest First)</option>
+                  <option value="rasio-asc">Sort by: Competition Ratio (Lowest First)</option>
+                  <option value="pelamar-desc">Sort by: Total Applicants (Highest First)</option>
+                  <option value="pelamar-asc">Sort by: Total Applicants (Lowest First)</option>
+                  <option value="posisi-desc">Sort by: Target Positions (Highest First)</option>
+                  <option value="title-asc">Sort by: Program Name (A-Z)</option>
+                </select>
+              </div>
+
+              <div class="layout-toggle-group">
+                <button class="btn btn-secondary active" id="layoutGridBtn" title="Grid View">
+                  <i data-lucide="layout-grid"></i>
+                </button>
+                <button class="btn btn-secondary" id="layoutTableBtn" title="List View">
+                  <i data-lucide="list"></i>
+                </button>
+              </div>
+            </div>
+            
+            <div class="filter-footer">
+              <span class="active-filters-count" id="filteredCountText">Showing all - programs</span>
+              <button class="btn-text btn-icon-text" id="clearFiltersBtn">
+                <i data-lucide="x"></i>
+                <span>Clear All Filters</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Explorer Output View (Grid or Table) -->
+          <div class="explorer-results-container">
+            <!-- Grid View container -->
+            <div class="results-grid active" id="resultsGridView">
+              <!-- Cards rendered dynamically -->
+            </div>
+            
+            <!-- Table View container -->
+            <div class="results-table-wrapper" id="resultsTableView">
+              <table class="custom-table">
+                <thead>
+                  <tr>
+                    <th>Title & Company</th>
+                    <th>Location</th>
+                    <th class="text-right">Quotas</th>
+                    <th class="text-right">Applicants</th>
+                    <th class="text-center">Ratio</th>
+                    <th class="text-center">Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="resultsTableBody">
+                  <!-- Table rows rendered dynamically -->
+                </tbody>
+              </table>
+            </div>
+
+            <!-- Empty State -->
+            <div class="empty-state" id="explorerEmptyState" style="display: none;">
+              <i data-lucide="alert-circle" class="empty-icon"></i>
+              <h3>No Roles Found</h3>
+              <p class="text-secondary">Try adjusting your filters, search terms, or ratio range slider.</p>
+              <button class="btn btn-primary" id="resetExplorerFiltersBtn">Reset Filters</button>
+            </div>
+
+            <!-- Pagination controls -->
+            <div class="pagination-container" id="paginationWrapper">
+              <div class="pagination-info">
+                <span>Show</span>
+                <select id="itemsPerPageSelect" class="small-select">
+                  <option value="12">12</option>
+                  <option value="24">24</option>
+                  <option value="48">48</option>
+                  <option value="96">96</option>
+                </select>
+                <span>items per page</span>
+              </div>
+              <div class="pagination-pages" id="paginationPagesContainer">
+                <!-- Pages generated dynamically -->
+              </div>
+            </div>
+
+          </div>
+
+        </section>
+
+        <!-- SECTION 3: SAVED PROGRAMS / COMPARISON LIST -->
+        <section id="favorites-section" class="content-section">
+          
+          <div class="compare-header-box glassmorphic">
+            <div class="compare-intro">
+              <h3>Saved Roles & Side-by-Side Comparison</h3>
+              <p class="text-secondary">Select programs using the bookmark icon in the Explorer to add them here. Compare quotas, applicants, and select the roles that offer the highest chance of success.</p>
+            </div>
+            <div class="compare-actions">
+              <button class="btn btn-danger btn-icon-text" id="clearAllFavoritesBtn">
+                <i data-lucide="trash-2"></i>
+                <span>Clear All Saved</span>
+              </button>
+            </div>
+          </div>
+
+          <div class="compare-workspace" id="favoritesContainer">
+            
+            <!-- Comparison Grid comparison section -->
+            <div class="comparison-board" id="comparisonBoard">
+              <!-- Render comparison cards side-by-side dynamically -->
+            </div>
+
+            <!-- Empty Favorites State -->
+            <div class="empty-state" id="favoritesEmptyState">
+              <i data-lucide="bookmark" class="empty-icon"></i>
+              <h3>Your Saved List is Empty</h3>
+              <p class="text-secondary">Go to the Program Explorer and click the bookmark button on any internship program to save and compare them here.</p>
+              <button class="btn btn-primary btn-icon-text" id="goToExplorerBtn">
+                <i data-lucide="arrow-right"></i>
+                <span>Go to Explorer</span>
+              </button>
+            </div>
+
+          </div>
+
+        </section>
+
+        <!-- SECTION 4: AI CV MATCHER -->
+        <section id="matcher-section" class="content-section">
+          
+          <div class="matcher-layout-grid">
+            
+            <!-- Input Profile Column (Left) -->
+            <div class="matcher-input-card glassmorphic">
+              <div class="card-header">
+                <h3>Upload CV / Resume</h3>
+                <p class="text-secondary">Upload your CV in PDF or TXT format, or paste your details below to get tailored recommendations.</p>
+              </div>
+              
+              <!-- File Drag and Drop Box -->
+              <div class="cv-drop-zone" id="cvDropZone">
+                <i data-lucide="file-text" class="upload-icon"></i>
+                <p class="upload-text">Drag & drop your CV file here (PDF, TXT) or <strong>Browse</strong></p>
+                <span class="file-limits text-secondary">Supports files up to 5 MB</span>
+                <input type="file" id="resumeFileInput" accept=".pdf,.txt" style="display: none;">
+              </div>
+              
+              <!-- File Info Display (Hidden by default) -->
+              <div class="file-info-badge" id="fileInfoBadge" style="display: none;">
+                <i data-lucide="file-check-2" class="text-success"></i>
+                <div class="file-details">
+                  <span class="file-name" id="fileNameText">-</span>
+                  <span class="file-size text-secondary" id="fileSizeText">-</span>
+                </div>
+                <button class="btn-text" id="removeFileBtn" title="Remove File">
+                  <i data-lucide="x"></i>
+                </button>
+              </div>
+
+              <!-- Textarea copy-paste CV -->
+              <div class="form-group" style="margin-top: 20px;">
+                <label for="cvTextarea" class="text-secondary" style="font-size: 0.8rem; font-weight:600; text-transform:uppercase;">Or paste your CV Text / Biography:</label>
+                <textarea id="cvTextarea" placeholder="Paste your CV text, experience, skills, education, projects, or cover letter here..."></textarea>
+              </div>
+
+              <!-- AI Status Banner -->
+              <div class="ai-status-banner" id="aiStatusBanner">
+                <div class="status-left">
+                  <i data-lucide="cpu" class="status-icon" id="aiStatusIcon"></i>
+                  <div class="status-text">
+                    <span class="status-title" id="aiStatusTitle">Local Recommendation Engine</span>
+                    <span class="status-desc text-secondary" id="aiStatusDesc">No API key found. Using local heuristic keyword model.</span>
+                  </div>
+                </div>
+                <button class="btn-text" id="setupApiKeyBtn">Setup API Key</button>
+              </div>
+
+              <div class="action-row" style="margin-top: 24px;">
+                <button class="btn btn-primary btn-icon-text" id="runMatcherBtn" style="width: 100%;">
+                  <i data-lucide="sparkles"></i>
+                  <span>Find Matching Internships</span>
+                </button>
+              </div>
+
+            </div>
+
+            <!-- Output Profile Column (Right) -->
+            <div class="matcher-results-panel">
+              
+              <!-- Loading Skeleton -->
+              <div class="loading-skeleton" id="matcherLoadingSkeleton" style="display: none;">
+                <div class="skeleton-title"></div>
+                <div class="skeleton-text"></div>
+                <div class="skeleton-card"></div>
+                <div class="skeleton-card"></div>
+              </div>
+
+              <!-- Empty Matches State -->
+              <div class="empty-state" id="matcherEmptyState">
+                <i data-lucide="arrow-left-right" class="empty-icon"></i>
+                <h3>No Recommendations Yet</h3>
+                <p class="text-secondary">Upload your resume or paste your text on the left, then click "Find Matching Internships" to see customized recommendations.</p>
+              </div>
+
+              <!-- Results Panel Contents (Hidden by default) -->
+              <div class="matcher-results-content" id="matcherResultsContent" style="display: none;">
+                
+                <!-- Profile Breakdown Header Card -->
+                <div class="profile-summary-card glassmorphic">
+                  <div class="profile-header-left">
+                    <div class="domain-icon-box" id="resultDomainIcon">
+                      <i data-lucide="terminal"></i>
+                    </div>
+                    <div>
+                      <span class="profile-lbl text-secondary">Detected Profile</span>
+                      <h4 class="profile-title" id="resultDomainTitle">-</h4>
+                    </div>
+                  </div>
+                  <div class="profile-header-right">
+                    <div class="matches-count-badge">
+                      <span id="resultMatchCount">-</span>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Matches Skills Tags -->
+                <div class="skills-highlight-box">
+                  <h5>Matched Keywords in CV</h5>
+                  <div class="skills-tags-container" id="matchedSkillsTags">
+                    <!-- Dynamic badges -->
+                  </div>
+                </div>
+
+                <!-- Recommended list title -->
+                <div style="margin: 24px 0 16px 0;">
+                  <h4 style="font-family: var(--font-family-display);">Top Recommended Positions</h4>
+                  <p class="text-secondary" style="font-size:0.85rem;">Ranked by skill match quality and favorable competition ratio.</p>
+                </div>
+
+                <!-- Recommendations list -->
+                <div class="recommendations-list" id="recommendationsListContainer">
+                  <!-- Dynamic recommended cards -->
+                </div>
+
+              </div>
+
+            </div>
+
+          </div>
+
+        </section>
+
+      </div>
+      
+    </main>
+
+  </div>
+
+  <!-- AI KEY SETTINGS MODAL -->
+  <div class="modal-overlay" id="aiSettingsModal">
+    <div class="modal-content glassmorphic">
+      <div class="modal-header">
+        <div class="modal-title-wrapper">
+          <i data-lucide="settings" class="modal-title-icon text-primary"></i>
+          <h3>Gemini AI Settings</h3>
+        </div>
+        <button class="close-modal-btn" id="closeAiSettingsModalBtn">
+          <i data-lucide="x"></i>
+        </button>
+      </div>
+      <div class="modal-body">
+        <p class="text-secondary" style="margin-bottom: 20px; font-size: 0.9rem;">
+          Provide your <strong>Gemini API Key (starts with AIzaSy / AQ.)</strong> or <strong>Groq API Key (starts with gsk_)</strong> to activate advanced AI recommendations. The AI will parse your resume, match details, and write custom justifications for each internship recommendation.
+        </p>
+        
+        <div class="alert-box info-alert" style="margin-bottom: 20px; display: flex; gap: 10px; padding: 12px; background: rgba(59, 130, 246, 0.08); border-radius: 8px; border: 1px solid rgba(59, 130, 246, 0.15); align-items: center; font-size: 0.85rem;">
+          <i data-lucide="shield-check" style="color: var(--color-info); flex-shrink:0;"></i>
+          <span>Your key is stored securely in your browser's local storage and is sent directly to Google's or Groq's endpoints. No server captures your data.</span>
+        </div>
+
+        <div class="form-group">
+          <label for="geminiApiKeyInput" class="text-secondary" style="font-size: 0.8rem; font-weight:600; margin-bottom:4px;">Gemini / Groq API Key:</label>
+          <input type="password" id="geminiApiKeyInput" placeholder="Enter API Key (AIzaSy... / AQ... / gsk_...)">
+        </div>
+        
+        <div style="margin-top: 12px; display: flex; flex-direction: column; gap: 8px;">
+          <a href="https://console.groq.com/keys" target="_blank" class="link-btn" style="display: inline-flex; align-items: center; gap: 6px; font-size: 0.85rem; color: var(--color-primary); text-decoration: none; font-weight: 500;">
+            <span>Get a free Groq API Key from Groq Cloud Console</span>
+            <i data-lucide="external-link" style="width: 14px; height: 14px;"></i>
+          </a>
+          <a href="https://aistudio.google.com/" target="_blank" class="link-btn" style="display: inline-flex; align-items: center; gap: 6px; font-size: 0.85rem; color: var(--color-primary); text-decoration: none; font-weight: 500;">
+            <span>Get a free Gemini API Key from Google AI Studio</span>
+            <i data-lucide="external-link" style="width: 14px; height: 14px;"></i>
+          </a>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" id="clearApiKeyBtn">Clear Key</button>
+        <button class="btn btn-primary" id="saveApiKeyBtn">Save Settings</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- App Code Script -->
+  <script type="module" src="/src/app.js"></script>
+</body>
+</html>
