@@ -1,7 +1,5 @@
 # 🧭 Pertamina Career-Sync: Internship 2026 Dashboard & AI Matcher
 
-> **Created by Muhamad Cep Zamil** | [GitHub Profile](https://github.com/zamilkunn)
-
 **Pertamina Career-Sync** adalah platform dashboard analitik interaktif berbasis web modern yang dirancang khusus untuk memetakan, menganalisis, dan membandingkan seluruh program magang **PT Pertamina (Persero) Tahun 2026** secara real-time. 
 
 Web ini dilengkapi dengan **Recommender System** cerdas bertenaga AI yang membantu pelamar mengunggah CV mereka, mendeteksi kecenderungan rumpun keahlian secara otomatis, dan menyajikan rekomendasi lowongan magang yang paling sesuai dengan peluang masuk terbesar.
