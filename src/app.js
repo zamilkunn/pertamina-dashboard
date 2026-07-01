@@ -1867,8 +1867,8 @@ function initCvMatcher() {
       return;
     }
     
-    if (!file.name.endsWith('.pdf') && !file.name.endsWith('.txt')) {
-      showToast('Only PDF or TXT files are supported.', 'warning');
+    if (!file.name.endsWith('.pdf') && !file.name.endsWith('.txt') && !file.name.endsWith('.docx')) {
+      showToast('Only PDF, TXT, or DOCX files are supported.', 'warning');
       return;
     }
 

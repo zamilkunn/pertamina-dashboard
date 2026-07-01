@@ -17,6 +17,9 @@
   <!-- Chart.js (CDN) -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
+  <!-- Mammoth.js (CDN) for client-side DOCX Word file extraction -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
+
   <!-- PDF.js (CDN) for client-side CV file extraction -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 
@@ -423,15 +426,15 @@
             <div class="matcher-input-card glassmorphic">
               <div class="card-header">
                 <h3>Upload CV / Resume</h3>
-                <p class="text-secondary">Upload your CV in PDF or TXT format, or paste your details below to get tailored recommendations.</p>
+                <p class="text-secondary">Upload your CV in PDF, Word (.docx), or TXT format, or paste your details below to get tailored recommendations.</p>
               </div>
               
               <!-- File Drag and Drop Box -->
               <div class="cv-drop-zone" id="cvDropZone">
                 <i data-lucide="file-text" class="upload-icon"></i>
-                <p class="upload-text">Drag & drop your CV file here (PDF, TXT) or <strong>Browse</strong></p>
+                <p class="upload-text">Drag & drop your CV file here (PDF, DOCX, TXT) or <strong>Browse</strong></p>
                 <span class="file-limits text-secondary">Supports files up to 5 MB</span>
-                <input type="file" id="resumeFileInput" accept=".pdf,.txt" style="display: none;">
+                <input type="file" id="resumeFileInput" accept=".pdf,.txt,.docx" style="display: none;">
               </div>
               
               <!-- File Info Display (Hidden by default) -->
