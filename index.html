@@ -22,6 +22,9 @@
 
   <!-- App Stylesheet -->
   <link rel="stylesheet" href="/src/style.css">
+  
+  <!-- Inline SVG Favicon (Pertamina Logo) -->
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpath d='M10,80 C10,45 25,25 45,20 C35,40 25,60 25,80 Z' fill='%23005CA9'/%3E%3Cpath d='M35,80 C35,45 50,25 70,20 C60,40 50,60 50,80 Z' fill='%2342B029'/%3E%3Cpath d='M60,80 C60,45 75,25 95,20 C85,40 75,60 75,80 Z' fill='%23EF3340'/%3E%3C/svg%3E">
 </head>
 <body>
   
@@ -31,8 +34,15 @@
     <!-- Sidebar Navigation -->
     <aside class="sidebar" id="appSidebar">
       <div class="sidebar-brand">
-        <div class="brand-logo">
-          <i data-lucide="compass" class="brand-icon"></i>
+        <div class="brand-logo" style="background: transparent; padding: 0;">
+          <svg viewBox="0 0 100 100" width="36" height="36" style="display: block;">
+            <!-- Left Blue block -->
+            <path d="M10,80 C10,45 25,25 45,20 C35,40 25,60 25,80 Z" fill="#005CA9"/>
+            <!-- Middle Green block -->
+            <path d="M35,80 C35,45 50,25 70,20 C60,40 50,60 50,80 Z" fill="#42B029"/>
+            <!-- Right Red block -->
+            <path d="M60,80 C60,45 75,25 95,20 C85,40 75,60 75,80 Z" fill="#EF3340"/>
+          </svg>
         </div>
         <div class="brand-text">
           <h1>Career-Sync</h1>

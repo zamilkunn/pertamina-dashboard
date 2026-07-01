@@ -1730,13 +1730,21 @@ async function readResumeFile(file) {
         } catch (err) {
           reject(new Error('Gagal membaca PDF. Pastikan file PDF tidak terenkripsi/corrupt.'));
         }
+      } else if (file.name.endsWith('.docx')) {
+        try {
+          // Parse DOCX via Mammoth
+          const result = await mammoth.extractRawText({ arrayBuffer: content });
+          resolve(result.value);
+        } catch (err) {
+          reject(new Error('Gagal membaca file Word (.docx).'));
+        }
       } else {
         resolve(content); // Text file content
       }
     };
     reader.onerror = () => reject(new Error('Gagal membaca file.'));
     
-    if (file.name.endsWith('.pdf')) {
+    if (file.name.endsWith('.pdf') || file.name.endsWith('.docx')) {
       reader.readAsArrayBuffer(file);
     } else {
       reader.readAsText(file);
