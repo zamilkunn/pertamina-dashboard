@@ -2048,22 +2048,115 @@ html[data-theme="light"] .theme-toggle-btn .moon-icon {
     gap: 16px;
   }
 
-  /* --- Explorer filters: stack vertically --- */
-  .explorer-controls {
-    flex-direction: column;
-    align-items: stretch;
+  /* --- Explorer filter panel: compact mobile redesign --- */
+  .filter-panel {
+    padding: 12px;
     gap: 10px;
+    margin-bottom: 12px;
   }
 
-  .filter-row {
-    flex-wrap: wrap;
+  /* Search bar: full width, compact */
+  .filter-row.main-filters {
+    flex-direction: column;
     gap: 8px;
   }
 
-  .filter-row select,
-  .filter-row input {
-    flex: 1 1 140px;
+  .main-filters .search-group,
+  .main-filters .form-group:not(.search-group) {
     min-width: 0;
+    flex-grow: 1;
+  }
+
+  .form-group select,
+  .form-group input[type="text"] {
+    padding: 10px 14px;
+    font-size: 0.85rem;
+  }
+
+  /* Advanced filters row: slider full-width, then sort+toggle on same row */
+  .advanced-filters {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding-top: 10px;
+    grid-template-columns: unset;
+  }
+
+  /* Sort dropdown + layout toggle inline */
+  .advanced-filters > .form-group:last-of-type {
+    flex: 1;
+  }
+
+  .advanced-filters > .form-group:not(.slider-group),
+  .advanced-filters > .layout-toggle-group {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 8px;
+  }
+
+  /* Put sort select and layout toggle side by side */
+  .advanced-filters {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  /* override: sort + toggle on same row */
+  .sort-toggle-row {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+
+  .advanced-filters .form-group:not(.slider-group) {
+    flex: 1;
+  }
+
+  .layout-toggle-group {
+    flex-shrink: 0;
+  }
+
+  .layout-toggle-group .btn {
+    width: 38px;
+    height: 38px;
+    padding: 0;
+  }
+
+  /* Slider compact */
+  .slider-group .slider-labels {
+    font-size: 0.78rem;
+  }
+
+  .slider-ticks {
+    font-size: 0.65rem;
+  }
+
+  .custom-slider {
+    margin: 10px 0 6px 0;
+  }
+
+  /* Filter footer: compact */
+  .filter-footer {
+    padding-top: 10px;
+    font-size: 0.78rem;
+  }
+
+  /* Results grid: 1 col on mobile */
+  .results-grid {
+    grid-template-columns: 1fr !important;
+    gap: 12px;
+  }
+
+  /* Job card: tighter on mobile */
+  .job-card {
+    padding: 14px;
+  }
+
+  /* Table: horizontal scroll */
+  .results-table-wrapper {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
   }
 
   /* --- Table: horizontal scroll --- */

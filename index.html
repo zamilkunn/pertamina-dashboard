@@ -290,24 +290,27 @@
                 </div>
               </div>
 
-              <div class="form-group">
-                <select id="sortFieldSelect">
-                  <option value="rasio-desc">Sort by: Competition Ratio (Highest First)</option>
-                  <option value="rasio-asc">Sort by: Competition Ratio (Lowest First)</option>
-                  <option value="pelamar-desc">Sort by: Total Applicants (Highest First)</option>
-                  <option value="pelamar-asc">Sort by: Total Applicants (Lowest First)</option>
-                  <option value="posisi-desc">Sort by: Target Positions (Highest First)</option>
-                  <option value="title-asc">Sort by: Program Name (A-Z)</option>
-                </select>
-              </div>
+              <!-- Sort + Layout toggle: side by side on mobile -->
+              <div class="sort-toggle-row">
+                <div class="form-group" style="flex:1;">
+                  <select id="sortFieldSelect">
+                    <option value="rasio-desc">Sort by: Competition Ratio (Highest First)</option>
+                    <option value="rasio-asc">Sort by: Competition Ratio (Lowest First)</option>
+                    <option value="pelamar-desc">Sort by: Total Applicants (Highest First)</option>
+                    <option value="pelamar-asc">Sort by: Total Applicants (Lowest First)</option>
+                    <option value="posisi-desc">Sort by: Target Positions (Highest First)</option>
+                    <option value="title-asc">Sort by: Program Name (A-Z)</option>
+                  </select>
+                </div>
 
-              <div class="layout-toggle-group">
-                <button class="btn btn-secondary active" id="layoutGridBtn" title="Grid View">
-                  <i data-lucide="layout-grid"></i>
-                </button>
-                <button class="btn btn-secondary" id="layoutTableBtn" title="List View">
-                  <i data-lucide="list"></i>
-                </button>
+                <div class="layout-toggle-group">
+                  <button class="btn btn-secondary active" id="layoutGridBtn" title="Grid View">
+                    <i data-lucide="layout-grid"></i>
+                  </button>
+                  <button class="btn btn-secondary" id="layoutTableBtn" title="List View">
+                    <i data-lucide="list"></i>
+                  </button>
+                </div>
               </div>
             </div>
             
