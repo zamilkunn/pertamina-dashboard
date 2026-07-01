@@ -1058,14 +1058,39 @@ function bindEvents() {
     });
   });
 
-  // Mobile sidebar burger toggle
+  // Mobile sidebar burger toggle with backdrop overlay
   const burger = document.getElementById('mobileSidebarToggle');
   const sidebar = document.getElementById('appSidebar');
+  const backdrop = document.getElementById('sidebarBackdrop');
+
+  function openSidebar() {
+    sidebar.classList.add('open');
+    backdrop.classList.add('active');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeSidebar() {
+    sidebar.classList.remove('open');
+    backdrop.classList.remove('active');
+    document.body.style.overflow = '';
+  }
+
   if (burger && sidebar) {
     burger.addEventListener('click', () => {
-      sidebar.classList.toggle('active');
+      sidebar.classList.contains('open') ? closeSidebar() : openSidebar();
     });
   }
+
+  if (backdrop) {
+    backdrop.addEventListener('click', closeSidebar);
+  }
+
+  // Close sidebar when a nav item is clicked on mobile
+  document.querySelectorAll('.nav-item').forEach(item => {
+    item.addEventListener('click', () => {
+      if (window.innerWidth <= 768) closeSidebar();
+    });
+  });
 
   // Theme Toggler Event
   document.getElementById('themeToggleBtn').addEventListener('click', () => {

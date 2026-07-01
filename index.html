@@ -26,8 +26,8 @@
   <!-- App Stylesheet -->
   <link rel="stylesheet" href="/src/style.css">
   
-  <!-- Inline SVG Favicon (Pertamina Logo - accurate 3-chevron) -->
-  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 90'%3E%3Cpolygon points='0,90 22,90 50,0 28,0' fill='%23005CA9'/%3E%3Cpolygon points='30,90 52,90 80,0 58,0' fill='%236DB33F'/%3E%3Cpolygon points='60,90 82,90 110,0 88,0' fill='%23EF3340'/%3E%3C/svg%3E">
+  <!-- Inline SVG Favicon (Pertamina Logo - accurate parallelograms) -->
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 185'%3E%3Cpolygon points='8,150 75,170 118,55 51,35' fill='%23005CA9'/%3E%3Cpolygon points='95,8 155,22 147,62 87,48' fill='%23EF3340'/%3E%3Cpolygon points='100,72 160,86 150,126 90,112' fill='%236DB33F'/%3E%3C/svg%3E">
 </head>
 <body>
   
@@ -38,14 +38,14 @@
     <aside class="sidebar" id="appSidebar">
       <div class="sidebar-brand">
         <div class="brand-logo" style="background: transparent; padding: 0;">
-          <!-- Pertamina Logo: Three diagonal chevron shapes (Blue, Green, Red) -->
-          <svg viewBox="0 0 120 90" width="44" height="33" style="display: block;">
-            <!-- Blue chevron (left) -->
-            <polygon points="0,90 22,90 50,0 28,0" fill="#005CA9"/>
-            <!-- Green chevron (middle) -->
-            <polygon points="30,90 52,90 80,0 58,0" fill="#6DB33F"/>
-            <!-- Red chevron (right) -->
-            <polygon points="60,90 82,90 110,0 88,0" fill="#EF3340"/>
+          <!-- Pertamina Logo: 3 parallelograms (Blue large left, Red small top-right, Green lower-right) -->
+          <svg viewBox="0 0 200 185" width="42" height="39" style="display: block;">
+            <!-- Blue: large parallelogram, bottom-left -->
+            <polygon points="8,150 75,170 118,55 51,35" fill="#005CA9"/>
+            <!-- Red: small parallelogram, upper-right -->
+            <polygon points="95,8 155,22 147,62 87,48" fill="#EF3340"/>
+            <!-- Green: medium parallelogram, lower-right (below red) -->
+            <polygon points="100,72 160,86 150,126 90,112" fill="#6DB33F"/>
           </svg>
         </div>
         <div class="brand-text">
@@ -100,6 +100,9 @@
         </div>
       </div>
     </aside>
+
+    <!-- Mobile Sidebar Backdrop Overlay -->
+    <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
 
     <!-- Main Content Area -->
     <main class="main-content">
