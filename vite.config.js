@@ -10,7 +10,13 @@ export default defineConfig(({ mode }) => {
       open: true,
       configureServer: (server) => {
         server.middlewares.use(async (req, res, next) => {
-          if (req.url && req.url.startsWith('/api/match')) {
+          const url = req.url || '';
+          const isMatch = url.startsWith('/api/match');
+          const isLetter = url.startsWith('/api/coverletter');
+          const isOptimize = url.startsWith('/api/optimize');
+          const isInterview = url.startsWith('/api/interview');
+
+          if (isMatch || isLetter || isOptimize || isInterview) {
             if (req.method !== 'POST') {
               res.statusCode = 405;
               res.setHeader('Content-Type', 'application/json');
@@ -25,16 +31,10 @@ export default defineConfig(({ mode }) => {
 
             req.on('end', async () => {
               try {
-                const { cvText, candidateRoles } = JSON.parse(body);
+                const parsedBody = JSON.parse(body);
+                const { cvText, candidateRoles, roleTitle, company, action, qaList } = parsedBody;
                 
-                // Security Check 1: Size validation to prevent token exhaustion attack
-                if (!cvText || cvText.length < 15) {
-                  res.statusCode = 400;
-                  res.setHeader('Content-Type', 'application/json');
-                  res.end(JSON.stringify({ error: 'CV Text is too short. Min 15 chars.' }));
-                  return;
-                }
-                if (cvText.length > 15000) {
+                if (cvText && cvText.length > 15000) {
                   res.statusCode = 400;
                   res.setHeader('Content-Type', 'application/json');
                   res.end(JSON.stringify({ error: 'CV Text is too long. Max limit is 15,000 characters.' }));
@@ -49,7 +49,11 @@ export default defineConfig(({ mode }) => {
                   return;
                 }
 
-                const prompt = `
+                let prompt = '';
+                let jsonMode = true;
+
+                if (isMatch) {
+                  prompt = `
 You are a professional HR career match counselor at PT Pertamina (Persero).
 You must analyze the candidate's resume (CV) and match them with the best 5 internship roles from the provided list.
 To maximize their chance of acceptance, prioritize roles where they have a high skill match AND the competition ratio (applicant-to-position "rasio") is relatively lower.
@@ -72,6 +76,107 @@ Response MUST be a valid JSON array of objects with the exact schema below, and 
   }
 ]
 `;
+                } else if (isLetter) {
+                  jsonMode = false;
+                  prompt = `
+You are an expert career consultant. Write a professional, persuasive cover letter (Surat Lamaran Kerja) in Bahasa Indonesia for a candidate applying for the internship position of "${roleTitle}" at "${company}".
+Use the details from their CV below to highlight relevant skills and show enthusiasm for joining the team.
+
+Candidate CV:
+"""
+${cvText}
+"""
+
+Format the response as a formal business letter including a subject line ("Perihal: Lamaran Magang - ..."), proper salutations, body paragraphs showcasing fit, and a professional closing. Keep it polite, eager, and structured. Return ONLY the letter text.
+`;
+                } else if (isOptimize) {
+                  prompt = `
+You are a professional resume writer. Review the candidate's CV against the target internship role: "${roleTitle}" at "${company}".
+Identify missing keywords, required technical skills, and provide actionable tips to optimize their CV for this specific position.
+
+Candidate CV:
+"""
+${cvText}
+"""
+
+Response MUST be a valid JSON object with the exact schema below, and no other text or markdown formatting (Do NOT enclose in \`\`\`json).
+{
+  "missingKeywords": ["keyword1", "keyword2", "keyword3"],
+  "missingTechSkills": ["skill1", "skill2"],
+  "advice": [
+    "Advice tip 1 in Bahasa Indonesia",
+    "Advice tip 2 in Bahasa Indonesia",
+    "Advice tip 3 in Bahasa Indonesia"
+  ]
+}
+`;
+                } else if (isInterview) {
+                  if (action === 'generate_questions') {
+                    prompt = `
+You are a professional HR recruiter at PT Pertamina (Persero).
+Generate exactly 5 realistic, targeted interview questions in Bahasa Indonesia for a candidate applying for the internship position of "${roleTitle}" at "${company}".
+The questions should be a mix of technical skills and behavioral/fit assessment, customized based on the candidate's CV.
+
+Candidate CV:
+"""
+${cvText}
+"""
+
+Response MUST be a valid JSON object with the exact schema below, and no other text or markdown formatting (Do NOT enclose in \`\`\`json).
+{
+  "questions": [
+    "Question 1...",
+    "Question 2...",
+    "Question 3...",
+    "Question 4...",
+    "Question 5..."
+  ]
+}
+`;
+                  } else if (action === 'evaluate_answers') {
+                    prompt = `
+You are a professional HR recruiter at PT Pertamina (Persero).
+Evaluate the candidate's answers to the 5 mock interview questions for the internship position of "${roleTitle}" at "${company}".
+
+Questions and Candidate Answers:
+${qaList.map((qa, idx) => `
+Q${idx + 1}: ${qa.question}
+A${idx + 1}: ${qa.answer}
+`).join('\n')}
+
+For each question, provide:
+1. A score from 0 to 100 based on the relevance, depth, and professionalism of their answer.
+2. A brief constructive feedback in Bahasa Indonesia.
+3. A short, professional model answer (jawaban ideal) in Bahasa Indonesia.
+
+Also provide an overall final score (average) and an assessment verdict (e.g. "Excellent Candidate", "Good Potential", "Needs Practice").
+
+Response MUST be a valid JSON object with the exact schema below, and no other text or markdown formatting (Do NOT enclose in \`\`\`json).
+{
+  "overallScore": 85,
+  "verdict": "Good Potential",
+  "evaluations": [
+    {
+      "score": 80,
+      "feedback": "Feedback for Q1 in Bahasa Indonesia...",
+      "modelAnswer": "Model answer for Q1 in Bahasa Indonesia..."
+    },
+    ...
+  ]
+}
+`;
+                  }
+                }
+
+                const requestBody = {
+                  model: "llama-3.3-70b-versatile",
+                  messages: [{ role: "user", content: prompt }],
+                  temperature: jsonMode ? 0.3 : 0.7
+                };
+
+                if (jsonMode) {
+                  requestBody.response_format = { type: "json_object" };
+                }
 
                 const groqRes = await fetch('https://api.groq.com/openai/v1/chat/completions', {
                   method: 'POST',
@@ -79,32 +184,26 @@ Response MUST be a valid JSON array of objects with the exact schema below, and 
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${apiKey}`
                   },
-                  body: JSON.stringify({
-                    model: "llama-3.3-70b-versatile",
-                    messages: [{ role: "user", content: prompt }],
-                    response_format: { type: "json_object" },
-                    temperature: 0.3
-                  })
+                  body: JSON.stringify(requestBody)
                 });
 
                 if (!groqRes.ok) {
                   const errorText = await groqRes.text();
-                  if (groqRes.status === 429) {
-                    res.statusCode = 429;
-                    res.setHeader('Content-Type', 'application/json');
-                    res.end(JSON.stringify({ error: 'Limit harian API Groq Server telah habis. Silakan hubungi admin atau ganti API token.' }));
-                  } else {
-                    res.statusCode = groqRes.status;
-                    res.setHeader('Content-Type', 'application/json');
-                    res.end(JSON.stringify({ error: `Groq Server Error: ${errorText}` }));
-                  }
+                  res.statusCode = groqRes.status;
+                  res.setHeader('Content-Type', 'application/json');
+                  res.end(JSON.stringify({ error: `Groq Server Error: ${errorText}` }));
                   return;
                 }
 
-                const data = await groqRes.json();
+                const responseData = await groqRes.json();
                 res.statusCode = 200;
                 res.setHeader('Content-Type', 'application/json');
-                res.end(JSON.stringify(data));
+
+                if (isLetter) {
+                  res.end(JSON.stringify({ coverLetter: responseData.choices[0].message.content }));
+                } else {
+                  res.end(responseData.choices[0].message.content);
+                }
               } catch (err) {
                 res.statusCode = 500;
                 res.setHeader('Content-Type', 'application/json');

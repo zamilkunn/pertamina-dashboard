@@ -64,6 +64,10 @@
           <span>My Saved List</span>
           <span class="badge" id="bookmarkCountBadge">0</span>
         </button>
+        <button class="nav-item" data-target="interview-section" id="navInterview">
+          <i data-lucide="message-square"></i>
+          <span>AI Interview</span>
+        </button>
       </nav>
 
       <div class="sidebar-footer">
@@ -394,11 +398,30 @@
             </div>
           </div>
 
+          <!-- Comparison & Kanban Mode Toggle -->
+          <div class="compare-toggle-bar" id="compareToggleBar" style="display: flex; gap: 8px; margin-bottom: 20px;">
+            <button class="btn btn-secondary active" id="viewComparisonBtn" style="padding: 8px 14px; font-size:0.85rem;">
+              <i data-lucide="columns" style="width: 14px; height:14px; margin-right:4px; display:inline-block; vertical-align:middle;"></i>
+              <span style="vertical-align:middle;">Comparison Board</span>
+            </button>
+            <button class="btn btn-secondary" id="viewKanbanBtn" style="padding: 8px 14px; font-size:0.85rem;">
+              <i data-lucide="kanban" style="width: 14px; height:14px; margin-right:4px; display:inline-block; vertical-align:middle;"></i>
+              <span style="vertical-align:middle;">Application Tracker</span>
+            </button>
+          </div>
+
           <div class="compare-workspace" id="favoritesContainer">
             
             <!-- Comparison Grid comparison section -->
             <div class="comparison-board" id="comparisonBoard">
               <!-- Render comparison cards side-by-side dynamically -->
+            </div>
+
+            <!-- Kanban Board section (hidden by default) -->
+            <div class="kanban-board-container" id="kanbanBoardContainer" style="display: none; width: 100%;">
+              <div class="kanban-columns" id="kanbanColumns">
+                <!-- Renders 5 columns dynamically -->
+              </div>
             </div>
 
             <!-- Empty Favorites State -->
@@ -414,6 +437,117 @@
 
           </div>
 
+        </section>
+
+        <!-- SECTION 3.5: AI MOCK INTERVIEW -->
+        <section id="interview-section" class="content-section">
+          <div class="compare-header-box glassmorphic" style="margin-bottom: 24px;">
+            <div class="compare-intro">
+              <h3>AI Mock Interview Simulator</h3>
+              <p class="text-secondary">Simulate a Pertamina HR/Technical interview for your desired internship role. Get tailored questions, submit answers, and receive instant scorecard evaluations.</p>
+            </div>
+          </div>
+
+          <!-- STEP 1: INTERVIEW SETUP SCREEN -->
+          <div class="matcher-input-card glassmorphic" id="interviewSetupPanel">
+            <h4 style="margin-bottom: 12px; color: var(--color-primary);">Select Target Position</h4>
+            <p class="text-secondary" style="font-size: 0.9rem; margin-bottom: 20px;">
+              Select one of your bookmarked roles below to start the interview, or enter a custom position.
+            </p>
+
+            <div class="form-group" style="margin-bottom: 16px;">
+              <label for="interviewRoleSelect" class="text-secondary" style="font-size: 0.8rem; font-weight:600; text-transform:uppercase;">Select Role:</label>
+              <select id="interviewRoleSelect">
+                <option value="">-- Choose from your Saved List --</option>
+                <!-- Filled dynamically -->
+              </select>
+            </div>
+
+            <div class="form-group" style="margin-bottom: 24px;">
+              <label for="interviewCustomRoleInput" class="text-secondary" style="font-size: 0.8rem; font-weight:600; text-transform:uppercase;">Or Type Custom Position:</label>
+              <input type="text" id="interviewCustomRoleInput" placeholder="e.g. Software Engineer Intern, Legal Advisor, Kilang Operation...">
+            </div>
+
+            <button class="btn btn-primary btn-icon-text" id="startInterviewBtn" style="justify-content: center; padding: 14px; font-size: 1rem;">
+              <i data-lucide="play"></i>
+              <span>Start Mock Interview</span>
+            </button>
+          </div>
+
+          <!-- STEP 2: ACTIVE INTERVIEW CHAT SESSION -->
+          <div class="matcher-input-card glassmorphic" id="interviewSessionPanel" style="display: none; max-width: 800px; margin: 0 auto;">
+            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 12px; margin-bottom: 20px; gap: 16px;">
+              <div style="min-width: 0; flex-grow: 1;">
+                <h4 id="sessionRoleTitle" style="color: var(--color-primary); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">Role Title</h4>
+                <span class="text-secondary" style="font-size: 0.8rem;">Pertamina AI Mock Interview</span>
+              </div>
+              <div style="text-align: right; flex-shrink: 0;">
+                <span class="badge" id="interviewProgressBadge" style="background-color: var(--color-primary); white-space: nowrap;">Question 1 of 5</span>
+              </div>
+            </div>
+
+            <!-- Question display area -->
+            <div style="background-color: var(--bg-input); padding: 20px; border-radius: var(--border-radius-sm); border: 1px solid var(--border-color); margin-bottom: 20px;">
+              <div style="display: flex; gap: 12px; align-items: flex-start;">
+                <div style="width: 32px; height: 32px; border-radius: 50%; background-color: var(--color-primary-light); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                  <i data-lucide="cpu" style="width: 16px; height: 16px; color: var(--color-primary);"></i>
+                </div>
+                <div style="flex-grow: 1;">
+                  <span style="font-size: 0.75rem; font-weight: 700; text-transform: uppercase; color: var(--text-muted); display: block; margin-bottom: 4px;">Pertamina Interviewer AI</span>
+                  <p id="interviewerQuestionText" style="font-size: 0.95rem; line-height: 1.6; color: var(--text-primary); font-weight: 500;">
+                    Loading question...
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <!-- User answer box -->
+            <div class="form-group" style="margin-bottom: 20px;">
+              <label for="userAnswerTextarea" class="text-secondary" style="font-size: 0.8rem; font-weight:600; text-transform:uppercase;">Your Answer:</label>
+              <textarea id="userAnswerTextarea" placeholder="Type your detailed answer here... (be as comprehensive as possible)" style="height: 140px;"></textarea>
+            </div>
+
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <button class="btn btn-secondary" id="exitInterviewBtn">Exit Interview</button>
+              <button class="btn btn-primary btn-icon-text" id="submitAnswerBtn">
+                <span>Submit Answer</span>
+                <i data-lucide="arrow-right"></i>
+              </button>
+            </div>
+
+            <!-- Loading overlay inside session -->
+            <div id="sessionLoadingOverlay" style="display: none; text-align: center; margin-top: 16px;">
+              <p class="text-secondary" style="font-size: 0.85rem;"><i data-lucide="loader-2" class="animate-spin" style="display:inline-block; vertical-align:middle; margin-right:6px; width:16px; height:16px;"></i> AI is evaluating and preparing the next question...</p>
+            </div>
+          </div>
+
+          <!-- STEP 3: FINAL SCORECARD REPORT -->
+          <div id="interviewReportPanel" style="display: none; max-width: 800px; margin: 0 auto;">
+            <!-- Overall Scorecard Header -->
+            <div class="matcher-input-card glassmorphic" style="text-align: center; padding: 32px; margin-bottom: 24px;">
+              <i data-lucide="award" style="width: 54px; height: 54px; color: var(--color-warning); margin: 0 auto 12px auto;"></i>
+              <h3 id="reportRoleTitle">Role Title Interview Completed</h3>
+              <p class="text-secondary" style="margin-bottom: 20px;">Here is your performance scorecard evaluation by Pertamina HR AI.</p>
+              
+              <div style="display: inline-flex; flex-direction: column; align-items: center; padding: 16px 30px; background: var(--bg-input); border-radius: var(--border-radius-md); border: 1px solid var(--border-color); margin-bottom: 16px;">
+                <span id="interviewFinalScore" style="font-size: 3rem; font-weight: 800; color: var(--color-primary); line-height: 1.1;">85/100</span>
+                <span id="interviewVerdict" style="font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; font-size: 0.9rem; margin-top: 4px; color: var(--color-success);">Excellent Candidate</span>
+              </div>
+            </div>
+
+            <!-- Questions Breakdowns -->
+            <h4 style="margin-bottom: 16px;">Question & Answer Breakdown</h4>
+            <div id="interviewBreakdownList" style="display: flex; flex-direction: column; gap: 20px; margin-bottom: 24px;">
+              <!-- Cards rendered dynamically -->
+            </div>
+
+            <div style="text-align: center;">
+              <button class="btn btn-primary btn-icon-text" id="restartInterviewBtn">
+                <i data-lucide="refresh-cw"></i>
+                <span>Restart Interview Simulator</span>
+              </button>
+            </div>
+          </div>
         </section>
 
         <!-- SECTION 4: AI CV MATCHER -->
@@ -588,6 +722,96 @@
       <div class="modal-footer">
         <button class="btn btn-secondary" id="clearApiKeyBtn">Clear Key</button>
         <button class="btn btn-primary" id="saveApiKeyBtn">Save Settings</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- RESUME OPTIMIZER MODAL -->
+  <div class="modal-overlay" id="resumeOptimizerModal">
+    <div class="modal-content glassmorphic" style="max-width: 600px;">
+      <div class="modal-header">
+        <div class="modal-title-wrapper">
+          <i data-lucide="sparkles" class="modal-title-icon text-primary"></i>
+          <h3>AI Resume Optimizer</h3>
+        </div>
+        <button class="close-modal-btn" id="closeOptimizerModalBtn">
+          <i data-lucide="x"></i>
+        </button>
+      </div>
+      <div class="modal-body" id="optimizerModalBody">
+        <div style="text-align: center; padding: 30px;" id="optimizerLoader">
+          <div class="skeleton-title" style="margin: 0 auto 16px auto;"></div>
+          <div class="skeleton-text" style="margin: 0 auto 12px auto; width: 80%;"></div>
+          <div class="skeleton-text" style="margin: 0 auto; width: 60%;"></div>
+          <p class="text-secondary" style="margin-top: 16px;">Analyzing CV against job requirements...</p>
+        </div>
+        <div id="optimizerContent" style="display: none;">
+          <h4 id="optimizerRoleTitle" style="color: var(--color-primary); margin-bottom: 8px;">Role Title</h4>
+          <p class="text-secondary" style="font-size: 0.9rem; margin-bottom: 20px;">
+            Here are the recommended keywords, skills, and certifications missing from your CV to maximize your match score for this position.
+          </p>
+
+          <div style="display: flex; flex-direction: column; gap: 16px;">
+            <div>
+              <h5 style="font-weight: 600; font-size: 0.85rem; text-transform: uppercase; color: var(--text-muted); margin-bottom: 6px;">Missing Keywords (Targeted Checklist)</h5>
+              <div class="checklist-container" id="missingKeywordsList" style="display: flex; flex-wrap: wrap; gap: 8px;">
+                <!-- Renders dynamically -->
+              </div>
+            </div>
+
+            <div>
+              <h5 style="font-weight: 600; font-size: 0.85rem; text-transform: uppercase; color: var(--text-muted); margin-bottom: 6px;">Required Technical Skills</h5>
+              <div id="missingTechSkills" style="display: flex; flex-wrap: wrap; gap: 8px;">
+                <!-- Renders dynamically -->
+              </div>
+            </div>
+
+            <div>
+              <h5 style="font-weight: 600; font-size: 0.85rem; text-transform: uppercase; color: var(--text-muted); margin-bottom: 6px;">Actionable Advice</h5>
+              <ul id="optimizationAdviceList" style="padding-left: 20px; font-size: 0.9rem; line-height: 1.6; color: var(--text-secondary);">
+                <!-- Renders dynamically -->
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" id="closeOptimizerFooterBtn">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- COVER LETTER GENERATOR MODAL -->
+  <div class="modal-overlay" id="coverLetterModal">
+    <div class="modal-content glassmorphic" style="max-width: 650px;">
+      <div class="modal-header">
+        <div class="modal-title-wrapper">
+          <i data-lucide="mail" class="modal-title-icon text-primary"></i>
+          <h3>AI Cover Letter Generator</h3>
+        </div>
+        <button class="close-modal-btn" id="closeLetterModalBtn">
+          <i data-lucide="x"></i>
+        </button>
+      </div>
+      <div class="modal-body" id="letterModalBody">
+        <div style="text-align: center; padding: 30px;" id="letterLoader">
+          <div class="skeleton-title" style="margin: 0 auto 16px auto;"></div>
+          <div class="skeleton-text" style="margin: 0 auto 12px auto; width: 80%;"></div>
+          <div class="skeleton-text" style="margin: 0 auto; width: 60%;"></div>
+          <p class="text-secondary" style="margin-top: 16px;">Writing your customized cover letter...</p>
+        </div>
+        <div id="letterContent" style="display: none; height: 100%;">
+          <h4 id="letterRoleTitle" style="color: var(--color-primary); margin-bottom: 8px;">Role Title</h4>
+          <p class="text-secondary" style="font-size: 0.85rem; margin-bottom: 12px;">
+            AI generated cover letter in Bahasa Indonesia. You can edit this directly before copying or downloading.
+          </p>
+          <textarea id="coverLetterTextarea" style="width: 100%; height: 280px; padding: 12px 16px; border-radius: var(--border-radius-sm); border: 1px solid var(--border-color); background-color: var(--bg-input); font-size: 0.85rem; line-height: 1.5; color: var(--text-primary); resize: vertical; outline: none; transition: border var(--transition-fast);"></textarea>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" id="copyLetterBtn" style="display:none;"><i data-lucide="copy" style="width:14px; height:14px;"></i> Copy</button>
+        <button class="btn btn-secondary" id="downloadLetterBtn" style="display:none;"><i data-lucide="download" style="width:14px; height:14px;"></i> Download TXT</button>
+        <button class="btn btn-primary" id="closeLetterFooterBtn">Done</button>
       </div>
     </div>
   </div>

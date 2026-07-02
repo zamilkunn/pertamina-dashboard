@@ -19,7 +19,18 @@ const state = {
   resumeText: '',
   resumeFileName: '',
   resumeFileSize: '',
-  geminiApiKey: ''
+  geminiApiKey: '',
+  
+  // Mock Interview State
+  interview: {
+    active: false,
+    roleTitle: '',
+    company: '',
+    questions: [],
+    answers: [],
+    currentQuestionIdx: 0,
+    evaluations: []
+  }
 };
 
 // Color palettes for Chart.js
@@ -884,11 +895,16 @@ function scrollToResults() {
 function loadBookmarks() {
   const saved = localStorage.getItem('pertamina_saved_roles');
   state.favorites = saved ? JSON.parse(saved) : [];
+  
+  const savedStages = localStorage.getItem('pertamina_stages');
+  state.applicationStages = savedStages ? JSON.parse(savedStages) : {};
+  
   updateBookmarkBadge();
 }
 
 function saveBookmarks() {
   localStorage.setItem('pertamina_saved_roles', JSON.stringify(state.favorites));
+  localStorage.setItem('pertamina_stages', JSON.stringify(state.applicationStages));
   updateBookmarkBadge();
 }
 
@@ -907,9 +923,11 @@ function toggleBookmark(originalTitle) {
   const index = state.favorites.indexOf(originalTitle);
   if (index === -1) {
     state.favorites.push(originalTitle);
+    state.applicationStages[originalTitle] = 'saved';
     showToast('Role saved to comparison sheet.', 'success');
   } else {
     state.favorites.splice(index, 1);
+    delete state.applicationStages[originalTitle];
     showToast('Role removed from comparison sheet.', 'info');
   }
   saveBookmarks();
@@ -927,19 +945,30 @@ function toggleBookmark(originalTitle) {
 function renderFavorites() {
   const board = document.getElementById('comparisonBoard');
   const emptyState = document.getElementById('favoritesEmptyState');
+  const kanbanContainer = document.getElementById('kanbanBoardContainer');
+  const compToggleBar = document.getElementById('compareToggleBar');
 
-  // Filter items in rawItems that match saved titles
-  const savedItems = state.rawItems.filter(item => state.favorites.includes(item.originalTitle));
-
-  if (savedItems.length === 0) {
+  if (state.favorites.length === 0) {
     board.innerHTML = '';
     board.style.display = 'none';
+    kanbanContainer.style.display = 'none';
+    compToggleBar.style.display = 'none';
     emptyState.style.display = 'flex';
     return;
   }
 
   emptyState.style.display = 'none';
+  compToggleBar.style.display = 'flex';
+
+  if (state.favoritesView === 'kanban') {
+    board.style.display = 'none';
+    kanbanContainer.style.display = 'block';
+    renderKanbanBoard();
+    return;
+  }
+
   board.style.display = 'grid';
+  kanbanContainer.style.display = 'none';
   board.innerHTML = '';
 
   // Find the lowest competition ratio item (most favorable) to tag it
@@ -1051,10 +1080,18 @@ function bindEvents() {
       } else if (target === 'favorites-section') {
         titleEl.textContent = 'My Saved List';
         subEl.textContent = 'Compare your saved roles to find your best fit.';
+      } else if (target === 'interview-section') {
+        titleEl.textContent = 'AI Mock Interview';
+        subEl.textContent = 'Practice answering realistic interview questions and get scored by AI.';
+        populateInterviewRolesDropdown();
       }
 
       // Close mobile sidebar if open
-      document.getElementById('appSidebar').classList.remove('active');
+      const sidebar = document.getElementById('appSidebar');
+      sidebar.classList.remove('active');
+      sidebar.classList.remove('open');
+      const backdrop = document.getElementById('sidebarBackdrop');
+      if (backdrop) backdrop.classList.remove('active');
     });
   });
 
@@ -1174,12 +1211,39 @@ function bindEvents() {
     if (state.favorites.length === 0) return;
     if (confirm('Are you sure you want to clear your saved list?')) {
       state.favorites = [];
+      state.applicationStages = {};
       saveBookmarks();
       renderExplorer();
       renderFavorites();
       showToast('All saved items cleared.', 'info');
     }
   });
+
+  // Kanban and Comparison View Toggle
+  const viewCompBtn = document.getElementById('viewComparisonBtn');
+  const viewKanbanBtn = document.getElementById('viewKanbanBtn');
+  const compBoard = document.getElementById('comparisonBoard');
+  const kanbanBoard = document.getElementById('kanbanBoardContainer');
+
+  if (viewCompBtn && viewKanbanBtn) {
+    viewCompBtn.addEventListener('click', () => {
+      viewCompBtn.classList.add('active');
+      viewKanbanBtn.classList.remove('active');
+      compBoard.style.display = 'grid';
+      kanbanBoard.style.display = 'none';
+      state.favoritesView = 'comparison';
+      renderFavorites();
+    });
+
+    viewKanbanBtn.addEventListener('click', () => {
+      viewCompBtn.classList.remove('active');
+      viewKanbanBtn.classList.add('active');
+      compBoard.style.display = 'none';
+      kanbanBoard.style.display = 'block';
+      state.favoritesView = 'kanban';
+      renderKanbanBoard();
+    });
+  }
 
   // Items per page selector
   document.getElementById('itemsPerPageSelect').addEventListener('change', (e) => {
@@ -1208,6 +1272,9 @@ function bindEvents() {
       processAndInitData(state.originalCsvContent);
     }
   });
+
+  // Bind AI Mock Interview Event handlers
+  bindInterviewEvents();
 }
 
 /**
@@ -2041,13 +2108,21 @@ function renderMatcherResults(results) {
         </div>
         <p class="rec-justification">${rec.justification}</p>
       </div>
-      <div class="rec-actions">
+      <div class="rec-actions" style="flex-wrap: wrap; gap: 6px;">
         <button class="bookmark-btn ${isSaved ? 'saved' : ''}" data-title="${rec.originalTitle}" title="Add to comparisons">
           <i data-lucide="bookmark"></i>
         </button>
-        <button class="btn btn-secondary inspect-btn" style="padding: 6px 12px; font-size:0.8rem;">
-          <i data-lucide="eye" style="width:14px; height:14px;"></i>
+        <button class="btn btn-secondary inspect-btn" style="padding: 6px 10px; font-size:0.75rem;">
+          <i data-lucide="eye" style="width:12px; height:12px;"></i>
           <span>View Role</span>
+        </button>
+        <button class="btn btn-secondary opt-cv-btn" style="padding: 6px 10px; font-size:0.75rem;" title="Optimize CV for this role">
+          <i data-lucide="sparkles" style="width:12px; height:12px;"></i>
+          <span>Optimize</span>
+        </button>
+        <button class="btn btn-secondary gen-letter-btn" style="padding: 6px 10px; font-size:0.75rem;" title="Generate Cover Letter">
+          <i data-lucide="mail" style="width:12px; height:12px;"></i>
+          <span>Letter</span>
         </button>
       </div>
     `;
@@ -2067,9 +2142,699 @@ function renderMatcherResults(results) {
       applyFiltersAndSort();
     });
 
+    // Optimize CV
+    card.querySelector('.opt-cv-btn').addEventListener('click', (e) => {
+      e.stopPropagation();
+      openResumeOptimizer(rec.title, rec.company);
+    });
+
+    // Generate Cover Letter
+    card.querySelector('.gen-letter-btn').addEventListener('click', (e) => {
+      e.stopPropagation();
+      openCoverLetterGenerator(rec.title, rec.company);
+    });
+
     container.appendChild(card);
   });
 
   lucide.createIcons();
 }
+
+// ----------------------------------------------------
+// AI Resume Optimizer Client Handlers & Local Heuristic
+// ----------------------------------------------------
+function getLocalResumeOptimization(cvText, roleTitle, company) {
+  const cvLower = cvText.toLowerCase();
+  let candidateKeywords = [];
+  let candidateTech = [];
+
+  const titleLower = roleTitle.toLowerCase();
+
+  if (titleLower.includes('software') || titleLower.includes('it') || titleLower.includes('developer') || titleLower.includes('data') || titleLower.includes('analyst') || titleLower.includes('system') || titleLower.includes('network')) {
+    candidateKeywords = ['Git', 'React', 'Node.js', 'Python', 'SQL', 'Docker', 'JavaScript', 'HTML', 'CSS', 'REST API', 'Agile', 'Software Development'];
+    candidateTech = ['Programming', 'Database Management', 'Version Control', 'Software Architecture', 'CI/CD'];
+  } else if (titleLower.includes('human') || titleLower.includes('hr') || titleLower.includes('admin') || titleLower.includes('corporate') || titleLower.includes('legal') || titleLower.includes('hukum') || titleLower.includes('komunikasi') || titleLower.includes('pr')) {
+    candidateKeywords = ['Microsoft Excel', 'Communication', 'Administration', 'Presentation', 'Public Relations', 'Filing', 'Coordination', 'Reporting', 'Legal Analysis'];
+    candidateTech = ['Office Productivity Tools', 'Public Speaking', 'Document Archiving', 'Legal Research'];
+  } else if (titleLower.includes('engineer') || titleLower.includes('teknik') || titleLower.includes('maintenance') || titleLower.includes('hse') || titleLower.includes('safety') || titleLower.includes('kilang') || titleLower.includes('operasi')) {
+    candidateKeywords = ['AutoCAD', 'SolidWorks', 'Maintenance', 'Safety (HSE)', 'Project Management', 'Quality Control', 'Troubleshooting', 'Risk Assessment', 'Standard Operating Procedures'];
+    candidateTech = ['Technical Drawing', 'Industrial Safety Standards', 'System Troubleshooting', 'Predictive Maintenance'];
+  } else if (titleLower.includes('finance') || titleLower.includes('akuntansi') || titleLower.includes('accounting') || titleLower.includes('audit') || titleLower.includes('pajak') || titleLower.includes('tax') || titleLower.includes('keuangan')) {
+    candidateKeywords = ['Financial Analysis', 'Accounting', 'Budgeting', 'Taxation', 'Auditing', 'Microsoft Excel', 'SAP', 'Financial Reporting', 'Reconciliation'];
+    candidateTech = ['Double-Entry Bookkeeping', 'Tax Compliance', 'Financial Modeling', 'Cost Control'];
+  } else {
+    candidateKeywords = ['Project Management', 'Microsoft Excel', 'Communication', 'Data Entry', 'Reporting', 'Problem Solving', 'Teamwork'];
+    candidateTech = ['Office Software Suite', 'Task Prioritization', 'Interpersonal Skills'];
+  }
+
+  const missingKeywords = candidateKeywords.filter(k => !cvLower.includes(k.toLowerCase()));
+  const missingTechSkills = candidateTech.filter(s => !cvLower.includes(s.toLowerCase()));
+
+  const advice = [
+    `Tambahkan beberapa keyword teknis berikut ke dalam CV Anda: ${missingKeywords.slice(0, 3).join(', ')}.`,
+    `Tuliskan pengalaman proyek Anda menggunakan metode STAR (Situation, Task, Action, Result) untuk menunjukkan dampak kerja nyata.`,
+    `Pastikan format CV Anda bersih dan ATS-friendly agar kata kunci "${roleTitle}" mudah terbaca oleh sistem rekrutmen Pertamina.`
+  ];
+
+  return { missingKeywords, missingTechSkills, advice };
+}
+
+async function openResumeOptimizer(roleTitle, company) {
+  const modal = document.getElementById('resumeOptimizerModal');
+  const loader = document.getElementById('optimizerLoader');
+  const content = document.getElementById('optimizerContent');
+  
+  document.getElementById('optimizerRoleTitle').textContent = `${roleTitle} - ${company}`;
+  loader.style.display = 'block';
+  content.style.display = 'none';
+  modal.classList.add('active');
+
+  const cvText = state.resumeText || document.getElementById('cvTextarea').value.trim();
+
+  // Try calling AI optimizer
+  try {
+    const response = await fetch('/api/optimize', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ cvText, roleTitle, company })
+    });
+
+    if (!response.ok) {
+      throw new Error(await response.text());
+    }
+
+    const optimization = await response.json();
+    renderOptimizerData(optimization);
+  } catch (err) {
+    console.warn("AI Optimization failed, using Local Heuristic:", err);
+    const localOptimization = getLocalResumeOptimization(cvText, roleTitle, company);
+    renderOptimizerData(localOptimization);
+  }
+}
+
+function renderOptimizerData(data) {
+  const loader = document.getElementById('optimizerLoader');
+  const content = document.getElementById('optimizerContent');
+
+  // Renders keywords
+  const keywordsContainer = document.getElementById('missingKeywordsList');
+  keywordsContainer.innerHTML = '';
+  if (data.missingKeywords && data.missingKeywords.length > 0) {
+    data.missingKeywords.forEach(kw => {
+      const label = document.createElement('label');
+      label.style.display = 'inline-flex';
+      label.style.alignItems = 'center';
+      label.style.gap = '6px';
+      label.style.padding = '4px 8px';
+      label.style.background = 'var(--bg-input)';
+      label.style.border = '1px solid var(--border-color)';
+      label.style.borderRadius = '4px';
+      label.style.fontSize = '0.8rem';
+      label.style.color = 'var(--text-secondary)';
+      label.innerHTML = `<input type="checkbox" style="margin: 0;"> <span>${kw}</span>`;
+      keywordsContainer.appendChild(label);
+    });
+  } else {
+    keywordsContainer.innerHTML = '<span class="text-secondary" style="font-size:0.85rem;">CV Anda sudah optimal dengan kata kunci utama!</span>';
+  }
+
+  // Renders tech skills
+  const skillsContainer = document.getElementById('missingTechSkills');
+  skillsContainer.innerHTML = '';
+  if (data.missingTechSkills && data.missingTechSkills.length > 0) {
+    data.missingTechSkills.forEach(skill => {
+      const span = document.createElement('span');
+      span.className = 'skill-match-tag';
+      span.style.background = 'var(--color-primary-light)';
+      span.style.color = 'var(--color-primary)';
+      span.textContent = skill;
+      skillsContainer.appendChild(span);
+    });
+  } else {
+    skillsContainer.innerHTML = '<span class="text-secondary" style="font-size:0.85rem;">Semua keterampilan utama sudah terdeteksi di CV Anda.</span>';
+  }
+
+  // Renders advice
+  const adviceContainer = document.getElementById('optimizationAdviceList');
+  adviceContainer.innerHTML = '';
+  if (data.advice && data.advice.length > 0) {
+    data.advice.forEach(tip => {
+      const li = document.createElement('li');
+      li.style.marginBottom = '6px';
+      li.textContent = tip;
+      adviceContainer.appendChild(li);
+    });
+  }
+
+  loader.style.display = 'none';
+  content.style.display = 'block';
+}
+
+// ----------------------------------------------------
+// AI Cover Letter Client Handlers & Local Heuristic
+// ----------------------------------------------------
+function getLocalCoverLetter(cvText, roleTitle, company) {
+  return `Jakarta, ${new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}
+
+Perihal: Permohonan Magang - ${roleTitle}
+Lampiran: Berkas CV & Portofolio
+
+Kepada Yth.
+Tim Rekrutmen ${company}
+PT Pertamina (Persero)
+
+Dengan hormat,
+
+Sehubungan dengan dibukanya program magang Pertamina 2026, melalui surat ini saya bermaksud untuk mengajukan diri sebagai peserta magang untuk posisi ${roleTitle} di ${company}.
+
+Sebagai mahasiswa/alumni yang berfokus pada bidang terkait, saya memiliki ketertarikan yang besar terhadap industri energi nasional dan memiliki bekal keahlian yang dapat menunjang operasional perusahaan. Berdasarkan CV saya, saya aktif mengembangkan kompetensi teknis dan soft skill yang relevan, serta siap bekerja sama dengan tim di ${company} untuk memberikan kontribusi nyata.
+
+Saya menyambut baik kesempatan untuk berdiskusi lebih lanjut dalam sesi wawancara untuk menjelaskan portofolio dan kesiapan saya secara lebih mendalam. Demikian surat lamaran ini saya sampaikan, atas perhatian Bapak/Ibu saya ucapkan terima kasih.
+
+Hormat saya,
+
+Guest Analyst
+Candidate - Pertamina Career-Sync`;
+}
+
+async function openCoverLetterGenerator(roleTitle, company) {
+  const modal = document.getElementById('coverLetterModal');
+  const loader = document.getElementById('letterLoader');
+  const content = document.getElementById('letterContent');
+  const copyBtn = document.getElementById('copyLetterBtn');
+  const downloadBtn = document.getElementById('downloadLetterBtn');
+
+  document.getElementById('letterRoleTitle').textContent = `${roleTitle} - ${company}`;
+  loader.style.display = 'block';
+  content.style.display = 'none';
+  copyBtn.style.display = 'none';
+  downloadBtn.style.display = 'none';
+  modal.classList.add('active');
+
+  const cvText = state.resumeText || document.getElementById('cvTextarea').value.trim();
+
+  // Try calling server-side generator
+  try {
+    const response = await fetch('/api/coverletter', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ cvText, roleTitle, company })
+    });
+
+    if (!response.ok) {
+      throw new Error(await response.text());
+    }
+
+    const { coverLetter } = await response.json();
+    renderCoverLetter(coverLetter);
+  } catch (err) {
+    console.warn("AI Cover Letter failed, using Local Heuristic:", err);
+    const localLetter = getLocalCoverLetter(cvText, roleTitle, company);
+    renderCoverLetter(localLetter);
+  }
+}
+
+function renderCoverLetter(letterText) {
+  const loader = document.getElementById('letterLoader');
+  const content = document.getElementById('letterContent');
+  const textarea = document.getElementById('coverLetterTextarea');
+  const copyBtn = document.getElementById('copyLetterBtn');
+  const downloadBtn = document.getElementById('downloadLetterBtn');
+
+  textarea.value = letterText;
+  loader.style.display = 'none';
+  content.style.display = 'block';
+  copyBtn.style.display = 'inline-flex';
+  downloadBtn.style.display = 'inline-flex';
+}
+
+// Bind modal close buttons
+document.getElementById('closeOptimizerModalBtn').addEventListener('click', () => {
+  document.getElementById('resumeOptimizerModal').classList.remove('active');
+});
+document.getElementById('closeOptimizerFooterBtn').addEventListener('click', () => {
+  document.getElementById('resumeOptimizerModal').classList.remove('active');
+});
+
+document.getElementById('closeLetterModalBtn').addEventListener('click', () => {
+  document.getElementById('coverLetterModal').classList.remove('active');
+});
+document.getElementById('closeLetterFooterBtn').addEventListener('click', () => {
+  document.getElementById('coverLetterModal').classList.remove('active');
+});
+
+// Clipboard and download letter actions
+document.getElementById('copyLetterBtn').addEventListener('click', () => {
+  const text = document.getElementById('coverLetterTextarea').value;
+  navigator.clipboard.writeText(text).then(() => {
+    showToast('Cover letter copied to clipboard!', 'success');
+  }).catch(() => {
+    showToast('Failed to copy text.', 'warning');
+  });
+});
+
+document.getElementById('downloadLetterBtn').addEventListener('click', () => {
+  const text = document.getElementById('coverLetterTextarea').value;
+  const role = document.getElementById('letterRoleTitle').textContent.replace(/\s+/g, '_');
+  const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `Cover_Letter_${role}.txt`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  showToast('Cover letter downloaded as text file!', 'success');
+});
+
+// ----------------------------------------------------
+// AI Mock Interview Simulator Logic
+// ----------------------------------------------------
+function populateInterviewRolesDropdown() {
+  const select = document.getElementById('interviewRoleSelect');
+  if (!select) return;
+
+  // Clear previous dynamic options
+  select.innerHTML = '<option value="">-- Choose from your Saved List --</option>';
+
+  // Get bookmarked roles details
+  state.favorites.forEach(title => {
+    const role = state.rawItems.find(item => item.title === title || item.title_asli === title);
+    if (role) {
+      const opt = document.createElement('option');
+      opt.value = role.title;
+      opt.dataset.company = role.company;
+      opt.textContent = `${role.title} (${role.company})`;
+      select.appendChild(opt);
+    }
+  });
+}
+
+function bindInterviewEvents() {
+  const startBtn = document.getElementById('startInterviewBtn');
+  const submitBtn = document.getElementById('submitAnswerBtn');
+  const exitBtn = document.getElementById('exitInterviewBtn');
+  const restartBtn = document.getElementById('restartInterviewBtn');
+
+  if (startBtn) startBtn.addEventListener('click', startMockInterview);
+  if (submitBtn) submitBtn.addEventListener('click', submitInterviewAnswer);
+  if (exitBtn) exitBtn.addEventListener('click', exitMockInterview);
+  if (restartBtn) {
+    restartBtn.addEventListener('click', () => {
+      document.getElementById('interviewReportPanel').style.display = 'none';
+      document.getElementById('interviewSetupPanel').style.display = 'block';
+    });
+  }
+}
+
+function getLocalInterviewQuestions(roleTitle) {
+  const titleLower = roleTitle.toLowerCase();
+
+  if (titleLower.includes('software') || titleLower.includes('it') || titleLower.includes('developer') || titleLower.includes('data') || titleLower.includes('analyst') || titleLower.includes('system') || titleLower.includes('network')) {
+    return [
+      "Ceritakan tentang proyek pengembangan software terbesar yang pernah Anda kerjakan secara mandiri atau tim, dan apa kontribusi spesifik Anda?",
+      "Bagaimana langkah-langkah Anda ketika melakukan debugging atau memecahkan masalah error yang sulit ditemukan penyebabnya?",
+      "Jelaskan perbedaan mendasar antara database relasional (SQL) dan non-relasional (NoSQL), serta kapan kita harus memilih salah satunya?",
+      "Bagaimana cara Anda berkolaborasi dengan rekan tim menggunakan Git? Ceritakan bagaimana Anda menyelesaikan masalah conflict merge.",
+      "Mengapa Anda tertarik magang di fungsi teknologi informasi PT Pertamina (Persero) dibandingkan dengan perusahaan teknologi (tech startup) lainnya?"
+    ];
+  } else if (titleLower.includes('human') || titleLower.includes('hr') || titleLower.includes('admin') || titleLower.includes('corporate') || titleLower.includes('legal') || titleLower.includes('hukum') || titleLower.includes('komunikasi') || titleLower.includes('pr')) {
+    return [
+      "Bagaimana cara Anda mengelola prioritas pekerjaan ketika dihadapkan pada banyak tugas administratif yang tenggat waktunya bersamaan?",
+      "Dalam posisi administratif atau komunikasi, ketelitian sangatlah penting. Ceritakan pengalaman Anda dalam menemukan kesalahan data sebelum laporan dikirimkan.",
+      "Bagaimana Anda membangun komunikasi yang efektif dengan rekan kerja dari latar belakang divisi atau budaya yang berbeda?",
+      "Jelaskan pemahaman Anda mengenai pentingnya kepatuhan hukum/regulasi (compliance) di perusahaan sebesar PT Pertamina (Persero).",
+      "Bagaimana Anda menangani kritik atau feedback negatif dari atasan atau pengguna jasa divisi Anda mengenai kualitas pekerjaan Anda?"
+    ];
+  } else if (titleLower.includes('engineer') || titleLower.includes('teknik') || titleLower.includes('maintenance') || titleLower.includes('hse') || titleLower.includes('safety') || titleLower.includes('kilang') || titleLower.includes('operasi')) {
+    return [
+      "Ceritakan pemahaman Anda tentang pentingnya prinsip K3 (Kesehatan, Keselamatan Kerja, dan Lingkungan/HSE) dalam lingkungan operasional migas Pertamina.",
+      "Jika Anda melihat rekan kerja Anda melanggar prosedur keselamatan kecil di lapangan kilang/fasilitas, apa tindakan konkret yang akan Anda lakukan?",
+      "Bagaimana Anda menganalisis kegagalan teknis/kerusakan peralatan mekanik atau elektrik? Langkah pemecahan masalah apa yang biasanya Anda ambil?",
+      "Ceritakan pengalaman Anda dalam merancang desain teknik (seperti memakai AutoCAD/SolidWorks) atau melakukan perawatan mesin.",
+      "Bagaimana Anda menjaga ketahanan fisik dan fokus mental saat bekerja di bawah tekanan atau dalam kondisi shift operasional yang dinamis?"
+    ];
+  } else if (titleLower.includes('finance') || titleLower.includes('akuntansi') || titleLower.includes('accounting') || titleLower.includes('audit') || titleLower.includes('pajak') || titleLower.includes('tax') || titleLower.includes('keuangan')) {
+    return [
+      "Bagaimana langkah-langkah Anda untuk memastikan keakuratan dan kebersihan data transaksi keuangan sebelum menyusun jurnal penutup?",
+      "Sebutkan rumus atau metode analisis keuangan yang paling sering Anda pakai untuk mengevaluasi kinerja anggaran sebuah departemen.",
+      "Bagaimana Anda bereaksi dan bertindak apabila menemukan selisih angka yang tidak dapat dijelaskan dalam sebuah laporan rekonsiliasi kas?",
+      "Jelaskan pemahaman Anda mengenai kepatuhan pajak korporasi (tax compliance) bagi BUMN sektor energi seperti Pertamina.",
+      "Bagaimana cara Anda menjelaskan data keuangan yang rumit dan penuh angka kepada rekan kerja yang bukan dari latar belakang keuangan agar mudah dimengerti?"
+    ];
+  } else {
+    return [
+      "Ceritakan tentang diri Anda, apa motivasi terbesar Anda melamar magang di PT Pertamina (Persero) tahun 2026 ini?",
+      "Berikan contoh situasi di mana Anda harus memimpin sebuah kelompok atau proyek kuliah. Bagaimana Anda membagi tugas dan mengelola konflik?",
+      "Bagaimana cara Anda beradaptasi ketika lingkungan kerja atau instruksi proyek berubah secara mendadak di tengah jalan?",
+      "Apa kelebihan terbesar Anda yang relevan dengan peran magang ini, dan apa satu kelemahan Anda beserta cara Anda mengatasinya?",
+      "Di mana Anda melihat diri Anda secara profesional dalam 3 tahun ke depan setelah menyelesaikan magang ini?"
+    ];
+  }
+}
+
+async function startMockInterview() {
+  const select = document.getElementById('interviewRoleSelect');
+  const customInput = document.getElementById('interviewCustomRoleInput');
+
+  let roleTitle = '';
+  let company = 'PT Pertamina (Persero)';
+
+  if (select.value) {
+    roleTitle = select.value;
+    const selectedOpt = select.options[select.selectedIndex];
+    company = selectedOpt.dataset.company || company;
+  } else if (customInput.value.trim()) {
+    roleTitle = customInput.value.trim();
+  }
+
+  if (!roleTitle) {
+    showToast('Please select a saved position or type a custom role name.', 'warning');
+    return;
+  }
+
+  // Setup state
+  state.interview = {
+    active: true,
+    roleTitle: roleTitle,
+    company: company,
+    questions: [],
+    answers: [],
+    currentQuestionIdx: 0,
+    evaluations: []
+  };
+
+  document.getElementById('sessionRoleTitle').textContent = `${roleTitle} - ${company}`;
+  document.getElementById('interviewSetupPanel').style.display = 'none';
+  document.getElementById('interviewSessionPanel').style.display = 'block';
+  document.getElementById('interviewerQuestionText').textContent = 'Generating interview questions...';
+  document.getElementById('userAnswerTextarea').value = '';
+  document.getElementById('userAnswerTextarea').disabled = true;
+  document.getElementById('submitAnswerBtn').disabled = true;
+
+  const cvText = state.resumeText || document.getElementById('cvTextarea').value.trim();
+
+  // Try calling AI to generate questions
+  try {
+    const response = await fetch('/api/interview', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        action: 'generate_questions',
+        cvText,
+        roleTitle,
+        company
+      })
+    });
+
+    if (!response.ok) throw new Error(await response.text());
+    
+    const { questions } = await response.json();
+    if (questions && questions.length === 5) {
+      state.interview.questions = questions;
+    } else {
+      throw new Error('Invalid questions count');
+    }
+  } catch (err) {
+    console.warn('AI question generation failed, using local fallback:', err);
+    state.interview.questions = getLocalInterviewQuestions(roleTitle);
+  }
+
+  // Load first question
+  document.getElementById('interviewerQuestionText').textContent = state.interview.questions[0];
+  document.getElementById('interviewProgressBadge').textContent = `Question 1 of 5`;
+  document.getElementById('userAnswerTextarea').disabled = false;
+  document.getElementById('submitAnswerBtn').disabled = false;
+  lucide.createIcons();
+}
+
+function submitInterviewAnswer() {
+  const textarea = document.getElementById('userAnswerTextarea');
+  const answer = textarea.value.trim();
+
+  if (!answer || answer.length < 5) {
+    showToast('Please provide a detailed answer (min 5 characters).', 'warning');
+    return;
+  }
+
+  // Save current answer
+  state.interview.answers.push(answer);
+  const nextIdx = state.interview.currentQuestionIdx + 1;
+
+  if (nextIdx < 5) {
+    // Show next question
+    state.interview.currentQuestionIdx = nextIdx;
+    textarea.value = '';
+    document.getElementById('interviewerQuestionText').textContent = state.interview.questions[nextIdx];
+    document.getElementById('interviewProgressBadge').textContent = `Question ${nextIdx + 1} of 5`;
+    textarea.focus();
+  } else {
+    // Final question submitted, trigger evaluation
+    evaluateInterview();
+  }
+}
+
+async function evaluateInterview() {
+  document.getElementById('userAnswerTextarea').disabled = true;
+  document.getElementById('submitAnswerBtn').disabled = true;
+  document.getElementById('sessionLoadingOverlay').style.display = 'block';
+
+  const cvText = state.resumeText || document.getElementById('cvTextarea').value.trim();
+  const qaList = state.interview.questions.map((q, idx) => ({
+    question: q,
+    answer: state.interview.answers[idx]
+  }));
+
+  try {
+    const response = await fetch('/api/interview', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        action: 'evaluate_answers',
+        cvText,
+        roleTitle: state.interview.roleTitle,
+        company: state.interview.company,
+        qaList
+      })
+    });
+
+    if (!response.ok) throw new Error(await response.text());
+    
+    const evaluationReport = await response.json();
+    renderInterviewReport(evaluationReport);
+  } catch (err) {
+    console.warn('AI evaluation failed, running Local Heuristic evaluation:', err);
+    
+    // Local evaluation fallback
+    const evaluations = state.interview.answers.map((ans, idx) => {
+      const len = ans.length;
+      const words = ans.trim().split(/\s+/).filter(w => w.length > 0);
+      const wordCount = words.length;
+      const hasVeryLongWord = words.some(w => w.length > 20);
+      const isGibberish = !/[aeiouy]/i.test(ans) || wordCount < 4 || len < 15 || hasVeryLongWord;
+      
+      let score = 50;
+      let feedback = '';
+
+      if (isGibberish) {
+        score = Math.floor(Math.random() * 6) + 5; // 5-10
+        feedback = `Jawaban Anda ("${ans}") terlalu singkat atau berupa teks acak. Jawaban wawancara profesional Pertamina memerlukan penjelasan kalimat yang utuh, runut, dan deskripsi pengalaman riil.`;
+      } else {
+        if (len > 250) {
+          score = Math.floor(Math.random() * 11) + 85; // 85-95
+          feedback = `Analisis jawaban Anda sepanjang ${len} karakter menunjukkan penguasaan konteks yang mendalam dengan uraian yang runut, jelas, dan profesional.`;
+        } else if (len > 120) {
+          score = Math.floor(Math.random() * 10) + 75; // 75-84
+          feedback = `Jawaban Anda sepanjang ${len} karakter sudah cukup baik, namun bisa ditingkatkan dengan memberikan contoh kasus nyata atau proyek yang pernah Anda kerjakan secara lebih detail.`;
+        } else if (len > 40) {
+          score = Math.floor(Math.random() * 15) + 55; // 55-69
+          feedback = `Jawaban Anda sepanjang ${len} karakter kurang mendalam. Untuk posisi magang Pertamina, uraikan kontribusi teknis dan akademis Anda secara lebih rinci menggunakan metode STAR.`;
+        } else {
+          score = Math.floor(Math.random() * 15) + 30; // 30-44
+          feedback = `Jawaban Anda sangat singkat (${len} karakter). Berikan penjelasan lebih panjang untuk meyakinkan pewawancara mengenai kompetensi Anda.`;
+        }
+
+        // Keyword boost
+        const lowerAns = ans.toLowerCase();
+        if (lowerAns.includes('saya') || lowerAns.includes('tim') || lowerAns.includes('masalah') || lowerAns.includes('solusi')) {
+          score = Math.min(100, score + 5);
+        }
+      }
+
+      return {
+        score,
+        feedback,
+        modelAnswer: `[Jawaban Ideal] Saya akan menguraikan kontribusi nyata dari latar belakang saya di bidang ini, mengutip teori akademis dan membagikan implementasi praktis yang pernah saya lakukan dalam tim/proyek mandiri untuk memberikan hasil terbaik.`
+      };
+    });
+
+    const averageScore = Math.round(evaluations.reduce((sum, e) => sum + e.score, 0) / 5);
+    let verdict = 'Needs Practice';
+    if (averageScore >= 80) verdict = 'Excellent Candidate';
+    else if (averageScore >= 60) verdict = 'Good Potential';
+
+    renderInterviewReport({
+      overallScore: averageScore,
+      verdict,
+      evaluations
+    });
+  }
+}
+
+function renderInterviewReport(report) {
+  document.getElementById('interviewSessionPanel').style.display = 'none';
+  document.getElementById('sessionLoadingOverlay').style.display = 'none';
+  
+  const reportPanel = document.getElementById('interviewReportPanel');
+  document.getElementById('reportRoleTitle').textContent = `Interview for ${state.interview.roleTitle} - ${state.interview.company}`;
+  document.getElementById('interviewFinalScore').textContent = `${report.overallScore}/100`;
+  
+  const verdictEl = document.getElementById('interviewVerdict');
+  verdictEl.textContent = report.verdict;
+  
+  // Set color for verdict
+  if (report.overallScore >= 80) {
+    verdictEl.style.color = 'var(--color-success)';
+  } else if (report.overallScore >= 60) {
+    verdictEl.style.color = 'var(--color-warning)';
+  } else {
+    verdictEl.style.color = 'var(--color-danger)';
+  }
+
+  const listContainer = document.getElementById('interviewBreakdownList');
+  listContainer.innerHTML = '';
+
+  state.interview.questions.forEach((q, idx) => {
+    const evalData = report.evaluations[idx];
+    const card = document.createElement('div');
+    card.className = 'job-card';
+    card.style.borderColor = evalData.score >= 80 ? 'var(--color-success)' : evalData.score >= 60 ? 'var(--color-warning)' : 'var(--color-danger)';
+    card.style.padding = '18px';
+
+    card.innerHTML = `
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+        <span style="font-weight:700; color:var(--color-primary); font-size:0.9rem;">Pertanyaan ${idx + 1}</span>
+        <span class="badge" style="background-color: ${evalData.score >= 80 ? 'var(--color-success)' : evalData.score >= 60 ? 'var(--color-warning)' : 'var(--color-danger)'}; color:#fff;">Skor: ${evalData.score}</span>
+      </div>
+      <p style="font-weight:600; font-size:0.95rem; margin-bottom:8px; color:var(--text-primary);">${q}</p>
+      <div style="margin-bottom:12px; font-size:0.85rem; background:var(--bg-input); padding:10px; border-radius:4px; border-left:3px solid var(--text-muted);">
+        <strong style="display:block; font-size:0.75rem; text-transform:uppercase; color:var(--text-secondary); margin-bottom:4px;">Jawaban Anda:</strong>
+        <p style="color:var(--text-primary); line-height:1.5;">${state.interview.answers[idx]}</p>
+      </div>
+      <div style="margin-bottom:12px; font-size:0.85rem; background:rgba(16, 185, 129, 0.05); padding:10px; border-radius:4px; border-left:3px solid var(--color-success);">
+        <strong style="display:block; font-size:0.75rem; text-transform:uppercase; color:var(--color-success); margin-bottom:4px;">Jawaban Ideal:</strong>
+        <p style="color:var(--text-primary); line-height:1.5;">${evalData.modelAnswer}</p>
+      </div>
+      <div style="font-size:0.85rem; background:var(--bg-input); padding:10px; border-radius:4px; border-left:3px solid var(--color-primary);">
+        <strong style="display:block; font-size:0.75rem; text-transform:uppercase; color:var(--color-primary); margin-bottom:4px;">AI Feedback:</strong>
+        <p style="color:var(--text-secondary); line-height:1.5;">${evalData.feedback}</p>
+      </div>
+    `;
+    listContainer.appendChild(card);
+  });
+
+  reportPanel.style.display = 'block';
+  lucide.createIcons();
+  showToast('Interview evaluation completed!', 'success');
+}
+
+function exitMockInterview() {
+  if (confirm('Are you sure you want to exit the interview? Your progress will be lost.')) {
+    document.getElementById('interviewSessionPanel').style.display = 'none';
+    document.getElementById('interviewSetupPanel').style.display = 'block';
+    state.interview.active = false;
+  }
+}
+
+function renderKanbanBoard() {
+  const container = document.getElementById('kanbanColumns');
+  if (!container) return;
+
+  container.innerHTML = '';
+
+  const stages = [
+    { id: 'saved', name: 'Saved 📌', icon: 'bookmark' },
+    { id: 'applied', name: 'Applied ✉️', icon: 'send' },
+    { id: 'interviewing', name: 'Interviewing 🤝', icon: 'users' },
+    { id: 'offered', name: 'Offered 🎉', icon: 'gift' },
+    { id: 'rejected', name: 'Rejected ❌', icon: 'x-circle' }
+  ];
+
+  // Get matching saved raw items
+  const savedItems = state.rawItems.filter(item => state.favorites.includes(item.originalTitle));
+
+  stages.forEach(stage => {
+    // Filter items for this stage
+    const stageItems = savedItems.filter(item => {
+      const currentStage = state.applicationStages[item.originalTitle] || 'saved';
+      return currentStage === stage.id;
+    });
+
+    const column = document.createElement('div');
+    column.className = 'kanban-column';
+    
+    column.innerHTML = `
+      <div class="kanban-column-header">
+        <h4>
+          <i data-lucide="${stage.icon}" style="width:16px; height:16px; display:inline-block; vertical-align:middle; color:var(--color-primary);"></i>
+          <span style="vertical-align:middle;">${stage.name}</span>
+        </h4>
+        <span class="badge">${stageItems.length}</span>
+      </div>
+      <div class="kanban-cards-list" data-stage="${stage.id}">
+        <!-- Cards will render here -->
+      </div>
+    `;
+
+    const list = column.querySelector('.kanban-cards-list');
+
+    if (stageItems.length === 0) {
+      list.innerHTML = `<div style="text-align:center; padding:20px; color:var(--text-muted); font-size:0.75rem; border:1px dashed var(--border-color); border-radius:4px;">No items</div>`;
+    } else {
+      stageItems.forEach(item => {
+        const card = document.createElement('div');
+        card.className = 'kanban-card';
+        
+        card.innerHTML = `
+          <div class="kanban-card-title" style="margin-bottom: 4px; line-height: 1.2;">${item.title}</div>
+          <div class="kanban-card-company" style="margin-bottom: 6px;">${item.company}</div>
+          <div class="kanban-card-meta">
+            <span>Quota: <strong>${item.posisi}</strong></span>
+            <span>Ratio: <strong>${item.rasio.toFixed(1)}x</strong></span>
+          </div>
+          <div class="kanban-card-actions">
+            <select class="kanban-card-select">
+              ${stages.map(st => `<option value="${st.id}" ${st.id === stage.id ? 'selected' : ''}>Move to: ${st.name}</option>`).join('')}
+            </select>
+            <button class="btn-text remove-kanban-btn" title="Remove from list" style="padding:4px; color:var(--color-danger); border:none; background:none; cursor:pointer; display: flex; align-items:center;">
+              <i data-lucide="trash-2" style="width:14px; height:14px;"></i>
+            </button>
+          </div>
+        `;
+
+        // Change stage selector
+        card.querySelector('.kanban-card-select').addEventListener('change', (e) => {
+          const newStage = e.target.value;
+          state.applicationStages[item.originalTitle] = newStage;
+          saveBookmarks();
+          renderKanbanBoard();
+          showToast(`Moved application to ${newStage.toUpperCase()}!`, 'success');
+        });
+
+        // Remove button
+        card.querySelector('.remove-kanban-btn').addEventListener('click', () => {
+          toggleBookmark(item.originalTitle);
+        });
+
+        list.appendChild(card);
+      });
+    }
+
+    container.appendChild(column);
+  });
+
+  lucide.createIcons();
+}
+
 
