@@ -1088,7 +1088,7 @@ function bindEvents() {
   // Close sidebar when a nav item is clicked on mobile
   document.querySelectorAll('.nav-item').forEach(item => {
     item.addEventListener('click', () => {
-      if (window.innerWidth <= 768) closeSidebar();
+      if (window.innerWidth <= 1024) closeSidebar();
     });
   });
 

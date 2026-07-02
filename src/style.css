@@ -1346,49 +1346,6 @@ html[data-theme="light"] .theme-toggle-btn .moon-icon {
   }
 }
 
-@media (max-width: 768px) {
-  .app-container {
-    flex-direction: column;
-  }
-  .sidebar {
-    width: 100%;
-    height: auto;
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    transform: translateX(-100%);
-    box-shadow: var(--shadow-lg);
-  }
-  .sidebar.active {
-    transform: translateX(0);
-  }
-  .mobile-toggle {
-    display: block;
-  }
-  .main-content {
-    height: auto;
-    overflow-y: visible;
-  }
-  .top-header {
-    padding: 16px 20px;
-  }
-  .content-body {
-    padding: 20px;
-  }
-  .kpi-grid {
-    grid-template-columns: 1fr;
-  }
-  .kpi-card.span-two {
-    grid-column: span 1;
-  }
-  .advanced-filters {
-    grid-template-columns: 1fr;
-    gap: 16px;
-  }
-}
-
 /* AI CV Matcher Layout */
 .matcher-layout-grid {
   display: grid;
@@ -1906,7 +1863,19 @@ html[data-theme="light"] .theme-toggle-btn .moon-icon {
 }
 
 /* Mobile breakpoint (max 768px) */
-@media (max-width: 768px) {
+@media (max-width: 1024px) {
+
+  html, body {
+    max-width: 100vw;
+    overflow-x: hidden;
+  }
+
+  /* --- Container stacks vertically on mobile --- */
+  .app-container {
+    flex-direction: column;
+    max-width: 100vw;
+    overflow-x: hidden;
+  }
 
   /* --- Sidebar: Slide-in Overlay --- */
   .sidebar {
@@ -1939,9 +1908,13 @@ html[data-theme="light"] .theme-toggle-btn .moon-icon {
     display: block;
   }
 
-  /* --- Main content takes full width --- */
+  /* --- Main content takes full width & prevents stretching --- */
   .main-content {
     width: 100vw;
+    max-width: 100vw;
+    overflow-x: hidden;
+    height: auto;
+    overflow-y: visible;
   }
 
   /* --- Top Header: compact & clean --- */
@@ -2046,6 +2019,24 @@ html[data-theme="light"] .theme-toggle-btn .moon-icon {
   .charts-grid {
     grid-template-columns: 1fr !important;
     gap: 16px;
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+  .chart-card {
+    min-width: 0 !important;
+    max-width: 100% !important;
+    width: 100% !important;
+    overflow: hidden !important;
+    padding: 16px !important;
+  }
+  .chart-wrapper {
+    width: 100% !important;
+    max-width: 100% !important;
+    overflow: hidden !important;
+    min-width: 0 !important;
+  }
+  canvas {
+    max-width: 100% !important;
   }
 
   /* --- Explorer filter panel: compact mobile redesign --- */
@@ -2168,13 +2159,56 @@ html[data-theme="light"] .theme-toggle-btn .moon-icon {
 
   /* --- Matcher layout: single column --- */
   .matcher-layout-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr) !important;
     gap: 16px;
+    width: 100% !important;
+    max-width: 100% !important;
   }
 
   .matcher-input-card,
   .matcher-results-card {
     padding: 16px;
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    box-sizing: border-box !important;
+  }
+
+  .cv-drop-zone {
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+    padding: 20px 16px !important;
+  }
+
+  .upload-text {
+    white-space: normal !important;
+    word-break: break-word !important;
+    font-size: 0.85rem !important;
+  }
+
+  .ai-status-banner {
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+    flex-wrap: wrap !important;
+    padding: 10px 12px !important;
+    gap: 8px !important;
+  }
+
+  .status-left {
+    min-width: 0 !important;
+    flex: 1 !important;
+  }
+
+  .status-text {
+    min-width: 0 !important;
+  }
+
+  .status-desc {
+    white-space: normal !important;
+    text-overflow: clip !important;
+    overflow: visible !important;
   }
 
   /* Find Matching button: full width --- */
