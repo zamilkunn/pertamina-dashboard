@@ -116,21 +116,9 @@
         </div>
         
         <div class="header-right">
-          <!-- CSV Import/Reset -->
-          <div class="csv-actions">
-            <button class="btn btn-secondary btn-icon-only" id="aiSettingsBtn" title="Gemini AI Settings" style="margin-right: 8px;">
-              <i data-lucide="settings"></i>
-            </button>
-            <label for="csvFileInput" class="btn btn-secondary btn-icon-text" id="csvUploadLabel">
-              <i data-lucide="upload-cloud"></i>
-              <span>Upload CSV</span>
-            </label>
-            <input type="file" id="csvFileInput" accept=".csv" style="display: none;">
-            
-            <button class="btn btn-danger btn-icon-only" id="resetDataBtn" title="Reset to Original Pertamina Data" style="display: none;">
-              <i data-lucide="rotate-ccw"></i>
-            </button>
-          </div>
+          <button class="btn btn-secondary btn-icon-only" id="aiSettingsBtn" title="Gemini AI & Dataset Settings">
+            <i data-lucide="settings"></i>
+          </button>
         </div>
       </header>
 
@@ -687,7 +675,7 @@
       <div class="modal-header">
         <div class="modal-title-wrapper">
           <i data-lucide="settings" class="modal-title-icon text-primary"></i>
-          <h3>Gemini AI Settings</h3>
+          <h3>System & API Settings</h3>
         </div>
         <button class="close-modal-btn" id="closeAiSettingsModalBtn">
           <i data-lucide="x"></i>
@@ -717,6 +705,30 @@
             <span>Get a free Gemini API Key from Google AI Studio</span>
             <i data-lucide="external-link" style="width: 14px; height: 14px;"></i>
           </a>
+        </div>
+
+        <!-- Dashboard Dataset Management -->
+        <div style="margin-top: 24px; border-top: 1px solid var(--border-color); padding-top: 20px;">
+          <h4 style="margin-bottom: 8px; color: var(--text-primary); font-size: 0.95rem; font-weight: 700; display:flex; align-items:center; gap:6px;">
+            <i data-lucide="database" style="width:16px; height:16px; color:var(--color-primary);"></i>
+            <span>Import Program Dataset (CSV)</span>
+          </h4>
+          <p class="text-secondary" style="font-size: 0.85rem; margin-bottom: 16px;">
+            Untuk memperbarui daftar program magang Pertamina, unggah berkas spreadsheet CSV di sini.
+          </p>
+          
+          <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+            <label for="csvFileInput" class="btn btn-secondary btn-icon-text" id="csvUploadLabel" style="cursor: pointer; margin-bottom: 0;">
+              <i data-lucide="upload-cloud"></i>
+              <span>Import CSV</span>
+            </label>
+            <input type="file" id="csvFileInput" accept=".csv" style="display: none;">
+            
+            <button class="btn btn-danger btn-icon-text" id="resetDataBtn" title="Reset to Original Pertamina Data" style="display: none;">
+              <i data-lucide="rotate-ccw"></i>
+              <span>Reset Default</span>
+            </button>
+          </div>
         </div>
       </div>
       <div class="modal-footer">

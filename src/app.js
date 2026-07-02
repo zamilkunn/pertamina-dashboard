@@ -1262,6 +1262,9 @@ function bindEvents() {
       processAndInitData(evt.target.result);
       // Reset input value so same file can be uploaded again
       e.target.value = '';
+      // Close settings modal
+      const modal = document.getElementById('aiSettingsModal');
+      if (modal) modal.classList.remove('active');
     };
     reader.readAsText(file);
   });
@@ -1270,6 +1273,9 @@ function bindEvents() {
   document.getElementById('resetDataBtn').addEventListener('click', () => {
     if (confirm('Reset dashboard back to the original Pertamina 2026 dataset?')) {
       processAndInitData(state.originalCsvContent);
+      // Close settings modal
+      const modal = document.getElementById('aiSettingsModal');
+      if (modal) modal.classList.remove('active');
     }
   });
 

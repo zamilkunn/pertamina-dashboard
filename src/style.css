@@ -2070,24 +2070,6 @@ html[data-theme="light"] .theme-toggle-btn .moon-icon {
     flex-shrink: 0;
   }
 
-  .csv-actions {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-  }
-
-  /* Hide label text, keep only icons in header */
-  .btn-icon-text span {
-    display: none;
-  }
-
-  .btn-icon-text {
-    padding: 0;
-    width: 38px;
-    height: 38px;
-    border-radius: var(--border-radius-sm);
-  }
-
   .btn-icon-only {
     width: 38px;
     height: 38px;
